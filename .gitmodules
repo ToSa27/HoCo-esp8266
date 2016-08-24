@@ -1,3 +1,12 @@
 [submodule "tools/esptool2"]
 	path = tools/esptool2
 	url = https://github.com/raburton/esptool2.git
+[submodule "libs/esp_mqtt"]
+	path = libs/esp_mqtt
+	url = https://github.com/ToSa27/esp_mqtt.git
+[submodule "libs/libesphttpd"]
+	path = libs/libesphttpd
+	url = https://github.com/ToSa27/libesphttpd.git
+[submodule "libs/rboot"]
+	path = libs/rboot
+	url = https://github.com/ToSa27/rboot.git
