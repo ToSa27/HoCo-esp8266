@@ -1,0 +1,23 @@
+/hang
+	/$time					C->N	N	sh	{epoch}/{offset}
+	/{node}
+		/$online			N->C	Y	pl	{true or false}
+		/$name				N->C	Y	p	{name string}		resubmit on change?
+		/$ip				N->C	Y	p	{000.000.000.000}	resubmit on ip change?
+		/$signal			N->C	Y	p	{000}				resubmit every x seconds?
+		/$hwtype			N->C	Y	p	{type string}
+		/$hwrev				N->C	Y	p	{000}
+		/$fwtype			N->C	Y	p	{type string}
+		/$fwver				N->C	Y	p	{000}.{000}-{00000}
+		/$reset				C->N	N	sh	{blank or facory}
+		/$ota				C->N	N	sh	json with the fw to update		{"hw":"Default","rev":1,"type":"FIRMWARE","major":1,"minor":1,"build":138}	
+		/$ota/check			N->C	N	p	json with current fw details	{"HARDWARE":{"type":"Default","rev":1},"BOOTLOADER":{"slot":0,"major":1,"minor":1,"build":392},"FACTORY":{"slot":1,"major":1,"minor":1,"build":214},"FIRMWARE":{"slot":2,"major":1,"minor":1,"build":138}}	
+		/$config			N->C	Y	p
+			/$set			C->N	N	
+		/$devices			N->C	Y	
+		/{device}
+			/$config		N->C	Y	
+				/$set		C->N	N	
+			/$properties	N->C	Y	
+			/{property}		N->C	Y	
+				/$set		C->N	N	
