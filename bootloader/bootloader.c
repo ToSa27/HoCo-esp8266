@@ -272,7 +272,7 @@ uint32 __attribute__ ((noinline)) find_image(void) {
 	uint8 slot = latest_factory;
 
 	bootloader_status status;
-	if (rtc_mem(BOOT_RTC_ADDR, &status, sizeof(bootloader_status), RTC_READ) &&
+	if (rtc_mem(RTCADDR_BOOT, &status, sizeof(bootloader_status), RTC_READ) &&
 		(status.magic == BOOT_RTC_MAGIC) &&
 		(status.chksum == calc_chksum((uint8*)&status, (uint8*)&status.chksum))) {
 		// valid rtc data means no power cycle
@@ -314,7 +314,7 @@ uint32 __attribute__ ((noinline)) find_image(void) {
 	status.current_rom = slot;
 	status.temp_rom = 0;
 	status.chksum = calc_chksum((uint8*)&status, (uint8*)&status.chksum);
-	rtc_mem(BOOT_RTC_ADDR, &status, sizeof(bootloader_status), RTC_WRITE);
+	rtc_mem(RTCADDR_BOOT, &status, sizeof(bootloader_status), RTC_WRITE);
 
 	ets_printf("Booting rom in slot %d.\r\n", slot);
 

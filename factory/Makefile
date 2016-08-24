@@ -16,7 +16,8 @@ OBJCOPY					= $(XTENSA_BINDIR)/xtensa-lx106-elf-objcopy
 TARGET					= factory
 MODULES					= user
 LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl
-COMMONS					= cjson sys_config hw_config boot ota wifi base64 user_mqtt user_ota user_web
+#COMMONS					= cjson sys_config hw_config boot ota wifi base64 user_mqtt user_ota user_web
+COMMONS					= 
 COMMONMODULES			= 
 
 # build and firmware locations
@@ -71,6 +72,11 @@ DEFINES					+= VERSION_MAJOR=$(VERSION_MAJOR)
 DEFINES					+= VERSION_MINOR=$(VERSION_MINOR)
 DEFINES					+= VERSION_BUILD=$(VERSION_BUILD)
 DEFINES					+= HANG_VERBOSITY=5
+DEFINES					+= SECTOR_CONFIG_BOOT=$(SECTOR_CONFIG_BOOT)
+DEFINES					+= SECTOR_CONFIG_SDK=$(SECTOR_CONFIG_SDK)
+DEFINES					+= SECTOR_CONFIG_SDK_CALI=$(SECTOR_CONFIG_SDK_CALI)
+DEFINES					+= SECTOR_CONFIG_SYS=$(SECTOR_CONFIG_SYS)
+DEFINES					+= RTCADDR_BOOT=$(RTCADDR_BOOT)
 
 INCDIRS					= ../common/include
 INCDIRS					+= $(addsuffix /include,$(MODULES))

@@ -33,7 +33,6 @@ typedef int int32;
 
 #define BOOT_CONFIG_MAGIC	0x2334ae68
 
-#define BOOT_RTC_ADDR		64
 #define BOOT_RTC_MAGIC		0x2334ae68
 
 typedef struct {
