@@ -1,0 +1,3 @@
+[submodule "tools/esptool2"]
+	path = tools/esptool2
+	url = https://github.com/raburton/esptool2.git
