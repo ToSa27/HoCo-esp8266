@@ -1,4 +1,4 @@
-# HoCo factory makefile
+# HoCo firmware makefile
 # Tobias Hoff
 
 include ../config.mk
@@ -16,13 +16,17 @@ OBJCOPY					= $(XTENSA_BINDIR)/xtensa-lx106-elf-objcopy
 TARGET					= factory
 MODULES					= user
 LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl
-#COMMONS					= cjson ota wifi base64 user_mqtt user_ota user_web
+#COMMONS					= tick cjson wifi user_mqtt user_ota pin
 COMMONS					= boot sys_config hw_config
+#COMMONMODULES			= TimeLib CppJson
 COMMONMODULES			= 
+#HANGDEVICES				= DIn DOut
+HANGDEVICES				= 
 
 # build and firmware locations
 BUILD_BASE				= build
 BUILD_DIRS				:= $(addprefix $(BUILD_BASE)/,$(MODULES))
+BUILD_DIRS				+= $(BUILD_BASE)/hang
 BUILD_DIRS_COMMON		:= $(addprefix $(BUILD_BASE)/,$(COMMONMODULES))
 FIRMWARE_BASE			= firmware
 
@@ -34,22 +38,22 @@ TARGET_BIN				:= $(addprefix $(FIRMWARE_BASE)/,$(TARGET).bin)
 # components
 MAIN					= main2
 MAIN_LIB				:= $(addprefix $(BUILD_BASE)/lib,$(MAIN).a)
-HTTPD					= esphttpd
-HTTPD_FS				= webpages-espfs
-HTTPD_DIR				= ../libs/libesphttpd
-HTTPD_LIB_SRC			= $(addprefix $(HTTPD_DIR)/lib,$(HTTPD).a)
-HTTPD_LIB				= $(addprefix $(BUILD_BASE)/lib,$(HTTPD).a)
-HTTPD_FS_LIB_SRC		= $(addprefix $(HTTPD_DIR)/lib,$(HTTPD_FS).a)
-HTTPD_FS_LIB			= $(addprefix $(BUILD_BASE)/lib,$(HTTPD_FS).a)
 MQTT					= mqtt
 MQTT_DIR				= ../libs/esp_mqtt
 MQTT_LIB_SRC			= $(addprefix $(MQTT_DIR)/lib,$(MQTT).a)
 MQTT_LIB				= $(addprefix $(BUILD_BASE)/lib,$(MQTT).a)
+HANG					= hang
+HANG_LIB				= $(addprefix $(BUILD_BASE)/lib,$(HANG).a)
+#HANG_SRC				= Base Device
+HANG_SRC				= 
+HANG_SRC				+= $(HANGDEVICES)
+HANG_SRC				:= $(addprefix $(HANG)/Hang,$(HANG_SRC))
+HANG_SRC				:= $(addsuffix .cpp,$(HANG_SRC))
+HANG_OBJ				= $(patsubst %.cpp,$(BUILD_BASE)/%.o,$(HANG_SRC))
 LIBS					+= $(MAIN)
-LIBS					+= $(HTTPD)
-LIBS					+= $(HTTPD_FS)
 LIBS					+= $(MQTT)
 LIBS					+= $(TARGET)
+LIBS					+= $(HANG)
 SRC						:= $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.c))
 OBJ						= $(patsubst %.c,$(BUILD_BASE)/%.o,$(SRC))
 SRCPP					:= $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cpp))
@@ -67,7 +71,7 @@ E2_SECT					= .text .data .rodata
 # compiler / linker settings
 DEFINES					= __ets__
 DEFINES					+= ICACHE_FLASH
-DEFINES					+= FACTORY
+DEFINES					+= FIRMWARE
 DEFINES					+= VERSION_MAJOR=$(VERSION_MAJOR)
 DEFINES					+= VERSION_MINOR=$(VERSION_MINOR)
 DEFINES					+= VERSION_BUILD=$(VERSION_BUILD)
@@ -76,19 +80,19 @@ DEFINES					+= SECTOR_CONFIG_BOOT=$(SECTOR_CONFIG_BOOT)
 DEFINES					+= SECTOR_CONFIG_SDK=$(SECTOR_CONFIG_SDK)
 DEFINES					+= SECTOR_CONFIG_SDK_CALI=$(SECTOR_CONFIG_SDK_CALI)
 DEFINES					+= SECTOR_CONFIG_SYS=$(SECTOR_CONFIG_SYS)
+DEFINES					+= SECTOR_CONFIG_HW=$(SECTOR_CONFIG_HW)
 DEFINES					+= RTCADDR_BOOT=$(RTCADDR_BOOT)
 
 INCDIRS					= ../common/include
 INCDIRS					+= $(addsuffix /include,$(MODULES))
 INCDIRS					+= $(addprefix ../common/modules/,$(COMMONMODULES))
+INCDIRS					+= $(addsuffix /include,$(HANG))
 INCDIRS					+= $(SDK_BASE)/include
 INCDIRS					+= ../bootloader/include
-INCDIRS					+= $(HTTPD_DIR)/include
 INCDIRS					+= $(MQTT_DIR)/mqtt/include
 
 LIBDIRS					= $(BUILD_BASE)
 LIBDIRS					+= $(SDK_BASE)/lib
-LIBDIRS					+= $(HTTPD_DIR)
 
 LDDIRS					= $(SDK_BASE)/../extra/ld
 LDDIRS					+= ../common/ld
@@ -108,8 +112,8 @@ CFLAGS					= $(COMMONFLAGS) -std=gnu99
 CPPFLAGS				= $(COMMONFLAGS) -std=c++98 -fno-rtti -fno-exceptions
 LDFLAGS					= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 
-vpath %.c $(MODULES)
-vpath %.cpp $(MODULES)
+vpath %.c $(MODULES) $(HANG)
+vpath %.cpp $(MODULES) $(HANG)
 define compile-modules
 $1/%.o: %.c
 	$(CC) $(INCDIRS) $(CFLAGS) $(DEFINES) -c $$< -o $$@
@@ -134,7 +138,7 @@ buildnum:
 	buildnumber.bat
 
 upload:
-	$(CURL) --insecure -u $(OTA_USER):$(OTA_PASS) -F "hw=$(HW_TYPE)" -F "rev=$(HW_REV)" -F "type=FACTORY" -F "major=$(VERSION_MAJOR)" -F "minor=$(VERSION_MINOR)" -F "build=$(VERSION_BUILD)" -F "upload=@$(TARGET_BIN)" $(OTA_URL)/upload
+	$(CURL) --insecure -u $(OTA_USER):$(OTA_PASS) -F "hw=$(HW_TYPE)" -F "rev=$(HW_REV)" -F "type=FIRMWARE" -F "major=$(VERSION_MAJOR)" -F "minor=$(VERSION_MINOR)" -F "build=$(VERSION_BUILD)" -F "upload=@$(TARGET_BIN)" $(OTA_URL)/upload
 
 clean:
 	rm -rf $(BUILD_BASE)
@@ -161,28 +165,6 @@ $(BUILD_BASE)/common/%.o: ../common/code/%.c
 $(MAIN_LIB): $(SDK_BASE)/lib/libmain.a
 	@$(OBJCOPY) -W Cache_Read_Enable_New $^ $@
 
-$(HTTPD_LIB_SRC):
-	$(MAKE) -C $(HTTPD_DIR) libesphttpd.a \
-		SDK_BASE=$(SDK_BASE) \
-		XTENSA_TOOLS_ROOT=$(XTENSA_BINDIR)/ \
-		GZIP_COMPRESSION=yes \
-		USE_HEATSHRINK=no
-
-$(HTTPD_LIB): $(HTTPD_LIB_SRC)
-	mv $(HTTPD_LIB_SRC) $(HTTPD_LIB)
-
-$(HTTPD_FS_LIB_SRC):
-	$(MAKE) -C $(HTTPD_DIR) libwebpages-espfs.a \
-		SDK_BASE=$(SDK_BASE) \
-		XTENSA_TOOLS_ROOT=$(XTENSA_BINDIR)/ \
-		GZIP_COMPRESSION=yes \
-		USE_HEATSHRINK=no \
-		HTMLDIR=../../factory/html
-
-$(HTTPD_FS_LIB): $(HTTPD_FS_LIB_SRC)
-	rm $(HTTPD_DIR)/webpages.espfs
-	mv $(HTTPD_FS_LIB_SRC) $(HTTPD_FS_LIB)
-
 $(MQTT_LIB_SRC):
 	$(MAKE) -C $(MQTT_DIR) lib \
 		SDK_BASE=$(SDK_BASE) \
@@ -192,10 +174,15 @@ $(MQTT_LIB_SRC):
 $(MQTT_LIB): $(MQTT_LIB_SRC)
 	mv $(MQTT_LIB_SRC) $(MQTT_LIB)
 
+$(HANG_LIB): $(HANG_OBJ)
+	@echo HANG_OBJ:
+	@echo $(HANG_OBJ)
+	$(AR) cru $@ $(HANG_OBJ)
+
 $(TARGET_LIB): $(OBJ)
 	$(AR) cru $@ $(OBJ)
 
-$(TARGET_ELF): $(MAIN_LIB) $(HTTPD_LIB) $(HTTPD_FS_LIB) $(MQTT_LIB) $(TARGET_LIB)
+$(TARGET_ELF): $(MAIN_LIB) $(MQTT_LIB) $(HANG_LIB) $(TARGET_LIB)
 	$(LD) $(LDDIRS) $(LIBDIRS) $(LDSCRIPTS) $(LDFLAGS) -Wl,--start-group $(LIBS) -Wl,--end-group -o $@
 
 $(TARGET_BIN): $(TARGET_ELF)

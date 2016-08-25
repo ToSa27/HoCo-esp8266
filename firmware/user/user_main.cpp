@@ -1,3 +1,7 @@
+#include <user_cpp.h>
+
+extern "C" {
+
 #include <user_config.h>
 #include <esp8266.h>
 #include <debug.h>
@@ -20,7 +24,10 @@ void ICACHE_FLASH_ATTR user_init_done_cb() {
 	hw_config_load(false);
 }
 
-void ICACHE_FLASH_ATTR user_init(void) {
+void ICACHE_FLASH_ATTR user_init() {
+	do_global_ctors();
 	boot_init();
 	system_init_done_cb(user_init_done_cb);
+}
+
 }
