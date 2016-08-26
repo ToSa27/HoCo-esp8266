@@ -16,8 +16,8 @@ OBJCOPY					= $(XTENSA_BINDIR)/xtensa-lx106-elf-objcopy
 TARGET					= factory
 MODULES					= user
 LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl
-#COMMONS					= cjson ota wifi base64 user_mqtt user_ota user_web
-COMMONS					= boot sys_config hw_config
+#COMMONS					= cjson ota base64 user_ota user_web
+COMMONS					= boot sys_config hw_config wifi mqttc
 COMMONMODULES			= 
 
 # build and firmware locations

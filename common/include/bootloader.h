@@ -72,7 +72,7 @@ static uint8 calc_chksum(uint8 *start, uint8 *end) {
 
 extern int ets_strcmp(const char *s1, const char *s2);
 
-static uint8 find_latest(bootloader_config romconf, char *type) {
+static uint8 boot_find_latest(bootloader_config romconf, char *type) {
 	uint8 latest = 0;
 	for (uint8 slot = 1; slot < 4; slot++) {
 		if (ets_strcmp(romconf.roms[slot].type, type) == 0) {

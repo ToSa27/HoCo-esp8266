@@ -49,6 +49,21 @@ void ICACHE_FLASH_ATTR boot_reboot() {
 	while (true);
 }
 
+void ICACHE_FLASH_ATTR boot_reboot_to_slot(uint8 temp_slot) {
+	DEBUG("boot_reboot_to_slot");
+	if (temp_slot != 0)
+		boot_set_temp_rom(temp_slot);
+	boot_reboot();
+}
+
+void ICACHE_FLASH_ATTR boot_reboot_to_factory() {
+	DEBUG("boot_reboot_to_factory");
+	uint8 latest = 0;
+	bootloader_config romconf;
+	if (boot_get_config(&romconf))
+		boot_reboot_to_slot(boot_find_latest(romconf, "FACTORY"));
+}
+
 bool ICACHE_FLASH_ATTR boot_get_config(bootloader_config *conf) {
 	DEBUG("boot_get_config");
 	spi_flash_read(SECTOR_CONFIG_BOOT * SECTOR_SIZE, (uint32*)conf, sizeof(bootloader_config));
@@ -86,7 +101,6 @@ bool ICACHE_FLASH_ATTR boot_set_status(bootloader_status *rtc) {
 	return system_rtc_mem_write(RTCADDR_BOOT, rtc, sizeof(bootloader_status));
 }
 
-/*
 bool ICACHE_FLASH_ATTR boot_set_temp_rom(uint8 rom) {
 	DEBUG("boot_set_temp_rom");
 	bootloader_status rtc;
@@ -99,6 +113,7 @@ bool ICACHE_FLASH_ATTR boot_set_temp_rom(uint8 rom) {
 	return boot_set_status(&rtc);
 }
 
+/*
 bool ICACHE_FLASH_ATTR boot_get_current_rom(uint8 *rom) {
 	DEBUG("boot_get_current_rom");
 	bootloader_status rtc;
@@ -107,26 +122,6 @@ bool ICACHE_FLASH_ATTR boot_get_current_rom(uint8 *rom) {
 		return true;
 	}
 	return false;
-}
-
-uint8 ICACHE_FLASH_ATTR boot_find_latest(bootloader_config romconf, char *type) {
-	DEBUG("boot_find_latest");
-	return find_latest(romconf, type);
-}
-
-void ICACHE_FLASH_ATTR boot_reboot_to_slot(uint8 temp_slot) {
-	DEBUG("boot_reboot_to_slot");
-	if (temp_slot != 0)
-		boot_set_temp_rom(temp_slot);
-	boot_reboot();
-}
-
-void ICACHE_FLASH_ATTR boot_reboot_to_factory() {
-	DEBUG("boot_reboot_to_factory");
-	uint8 latest = 0;
-	bootloader_config romconf;
-	if (boot_get_config(&romconf))
-	boot_reboot_to_slot(boot_find_latest(romconf, "FACTORY"));
 }
 
 int ICACHE_FLASH_ATTR boot_sys_info_rom(bootloader_config bc, char *entry, char *buff, int maxlen) {

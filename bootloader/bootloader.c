@@ -260,8 +260,8 @@ uint32 __attribute__ ((noinline)) find_image(void) {
 		SPIWrite(SECTOR_CONFIG_BOOT * SECTOR_SIZE, &romconf, sizeof(bootloader_config));
 	}
 
-	uint8 latest_factory = find_latest(romconf, "FACTORY");
-	uint8 latest_firmware = find_latest(romconf, "FIRMWARE");
+	uint8 latest_factory = boot_find_latest(romconf, "FACTORY");
+	uint8 latest_firmware = boot_find_latest(romconf, "FIRMWARE");
 	ets_printf("latest factory/firmware: %d/%d\r\n", latest_factory, latest_firmware);
 
 	if (latest_factory == 0 && latest_firmware == 0) {
