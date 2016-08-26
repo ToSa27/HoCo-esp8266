@@ -197,6 +197,14 @@ void ICACHE_FLASH_ATTR mqtt_disconnect() {
 	mqtt_set_state(MQTT_DISCONNECTED);
 }
 
+void ICACHE_FLASH_ATTR mqtt_subscribe(char *topic) {
+	MQTT_Subscribe(&mqtt_client, topic, 0);
+}
+
+void ICACHE_FLASH_ATTR mqtt_publish(char *topic, char *data, bool retain) {
+	MQTT_Publish(&mqtt_client, topic, data, os_strlen(data), 0, retain ? 1 : 0);
+}
+
 /*
 void ICACHE_FLASH_ATTR mqttOtaCheck(bool force) {
 	DEBUG("mqttOtaCheck");
@@ -208,32 +216,5 @@ void ICACHE_FLASH_ATTR mqttOtaCheck(bool force) {
 	buffend += boot_sys_info(true, true, buffend, maxlen - (buffend - buff));
 	buffend[0] = 0;
 	mqttPublish("$ota/check", buff, false);
-}
-
-// topic: "/hang/{subtopic}"
-// qos: 0
-void ICACHE_FLASH_ATTR mqttSubscribeBroadcast(char *subtopic) {
-	char topic[35];
-	os_memset(topic, 0, sizeof(topic));
-	os_sprintf(topic, "/hang/%s", subtopic);
-	MQTT_Subscribe(&mqttClient, topic, 0);
-}
-
-// topic: "/hang/{DeviceId}/{subtopic}"
-// qos: 0
-void ICACHE_FLASH_ATTR mqttSubscribe(char *subtopic) {
-	char topic[35];
-	os_memset(topic, 0, sizeof(topic));
-	os_sprintf(topic, "/hang/%s/%s", SysConfig.DeviceId, subtopic);
-	MQTT_Subscribe(&mqttClient, topic, 0);
-}
-
-// topic: "/hang/{DeviceId}/{subtopic}"
-// qos: 0
-void ICACHE_FLASH_ATTR mqttPublish(char *subtopic, char *data, bool retain) {
-	char topic[35];
-	os_memset(topic, 0, sizeof(topic));
-	os_sprintf(topic, "/hang/%s/%s", SysConfig.DeviceId, subtopic);
-	MQTT_Publish(&mqttClient, topic, data, os_strlen(data), 0, retain ? 1 : 0);
 }
 */

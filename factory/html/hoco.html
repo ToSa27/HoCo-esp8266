@@ -44,9 +44,9 @@ function uiAccessPoints(ap) {
   //<span class='ui-li-count'>-" + obj.ap[i].rssi + "</span>";
 }
 
-function uiOtaComponent(type, comp) {
+function uiFotaComponent(type, comp) {
  if (comp) {
-  $("#ota-fwlist").append(
+  $("#fota-fwlist").append(
    $("<li>").append(
     "[" + comp.slot + "] " + type + " v" + comp.major + "." + comp.minor + "-" + comp.build
    )
@@ -95,29 +95,29 @@ function connParseObj(obj) {
     $("#mqtt_user").val(obj.user);
     $("#mqtt_pw").val(obj.pw);
     break;
-   case "ota":
-    $("#ota_host").val(obj.host);
-    $("#ota_port").val(obj.port);
-    $("#ota_path").val(obj.path);
-    if ($("#ota_sec").hasClass('ui-flipswitch'))
-     $("#ota_sec").prop('checked', obj.sec == 1).flipswitch('refresh');
+   case "fota":
+    $("#fota_host").val(obj.host);
+    $("#fota_port").val(obj.port);
+    $("#fota_path").val(obj.path);
+    if ($("#fota_sec").hasClass('ui-flipswitch'))
+     $("#fota_sec").prop('checked', obj.sec == 1).flipswitch('refresh');
     else
-     $("#ota_sec").flipswitch().prop('checked', obj.sec == 1).flipswitch('refresh');
-    $("#ota_user").val(obj.user);
-    $("#ota_pw").val(obj.pw);
-    if ($("#ota_auto").hasClass('ui-flipswitch'))
-     $("#ota_auto").prop('checked', obj.auto == 1).flipswitch('refresh');
+     $("#fota_sec").flipswitch().prop('checked', obj.sec == 1).flipswitch('refresh');
+    $("#fota_user").val(obj.user);
+    $("#fota_pw").val(obj.pw);
+    if ($("#fota_auto").hasClass('ui-flipswitch'))
+     $("#fota_auto").prop('checked', obj.auto == 1).flipswitch('refresh');
     else
-     $("#ota_auto").flipswitch().prop('checked', obj.auto == 1).flipswitch('refresh');
-    $("#ota_current").val(obj.firmware.current);
-    $("#ota-fwlist").empty();
-    uiOtaComponent('BOOTLOADER', obj.firmware.components.BOOTLOADER);
-    uiOtaComponent('FACTORY', obj.firmware.components.FACTORY);
-    uiOtaComponent('FIRMWARE', obj.firmware.components.FIRMWARE);
-    if ($("#ota-fwlist").hasClass('ui-listview'))
-     $("#ota-fwlist").listview('refresh');
+     $("#fota_auto").flipswitch().prop('checked', obj.auto == 1).flipswitch('refresh');
+    $("#fota_current").val(obj.firmware.current);
+    $("#fota-fwlist").empty();
+    uiFotaComponent('BOOTLOADER', obj.firmware.components.BOOTLOADER);
+    uiFotaComponent('FACTORY', obj.firmware.components.FACTORY);
+    uiFotaComponent('FIRMWARE', obj.firmware.components.FIRMWARE);
+    if ($("#fota-fwlist").hasClass('ui-listview'))
+     $("#fota-fwlist").listview('refresh');
     else
-     $("#ota-fwlist").listview();
+     $("#fota-fwlist").listview();
     break;
    case "hardware":
     $("#hw_type").val(obj.type);
@@ -261,17 +261,17 @@ function uiInit() {
   };
   commSend(msg);
  });
- $("#ota-save").click(function() {
+ $("#fota-save").click(function() {
   var msg = {
-   data: "ota",
+   data: "fota",
    cmd: "write",
-   host: $("#ota_host").val(),
-   port: $("#ota_port").val(),
-   path: $("#ota_path").val(),
-   sec: $("#ota_sec").prop('checked') ? 1 : 0,
-   user: $("#ota_user").val(),
-   pw: $("#ota_pw").val(),
-   auto: $("#ota_auto").prop('checked') ? 1 : 0,
+   host: $("#fota_host").val(),
+   port: $("#fota_port").val(),
+   path: $("#fota_path").val(),
+   sec: $("#fota_sec").prop('checked') ? 1 : 0,
+   user: $("#fota_user").val(),
+   pw: $("#fota_pw").val(),
+   auto: $("#fota_auto").prop('checked') ? 1 : 0,
   };
   commSend(msg);
  });
@@ -324,7 +324,7 @@ window.addEventListener("load", init, false);
      <ul>
       <li><a href="#" class="ui-btn-active ui-state-persist">WiFi</a></li>
       <li><a href="#page-mqtt">MQTT</a></li>
-      <li><a href="#page-ota">OTA</a></li>
+      <li><a href="#page-fota">FOTA</a></li>
       <li><a href="#page-hw">HoCo</a></li>
      </ul>
     </div>
@@ -392,7 +392,7 @@ window.addEventListener("load", init, false);
      <ul>
       <li><a href="#page-wifi">Wifi</a></li>
       <li><a href="#" class="ui-btn-active ui-state-persist">MQTT</a></li>
-      <li><a href="#page-ota">OTA</a></li>
+      <li><a href="#page-fota">FOTA</a></li>
       <li><a href="#page-hw">HoCo</a></li>
      </ul>
     </div>
@@ -421,49 +421,49 @@ window.addEventListener("load", init, false);
    </div>
   </div>
 
-  <div data-role="page" id="page-ota">
+  <div data-role="page" id="page-fota">
    <div data-role="header">
-    <h1>HoCo - OTA</h1>
+    <h1>HoCo - FOTA</h1>
     <a href="javascript:uiRestart()" id="bn-restart" data-icon="power" class="ui-btn-right ui-link ui-btn-icon-left ui-shadow ui-corner-all">Restart</a>
     <div data-role="navbar">
      <ul>
       <li><a href="#page-wifi">Wifi</a></li>
       <li><a href="#page-mqtt">MQTT</a></li>
-      <li><a href="#" class="ui-btn-active ui-state-persist">OTA</a></li>
+      <li><a href="#" class="ui-btn-active ui-state-persist">FOTA</a></li>
       <li><a href="#page-hw">HoCo</a></li>
      </ul>
     </div>
    </div>
    <div data-role="main" class="ui-content">
     <div class="ui-field-contain">
-     <label for="ota_host">Host</label>
-     <input type="text" id="ota_host" placeholder="Hostname or IP" data-clear-btn="true">
-     <label for="ota_port">Port</label>
-     <input type="number" id="ota_port" placeholder="80" data-clear-btn="true">
-     <label for="ota_path">Path</label>
-     <input type="text" id="ota_path" placeholder="Path" data-clear-btn="true">
-     <label for="ota_sec">Encryption</label>
-     <input type="checkbox" id="ota_sec" data-role="flipswitch">
+     <label for="fota_host">Host</label>
+     <input type="text" id="fota_host" placeholder="Hostname or IP" data-clear-btn="true">
+     <label for="fota_port">Port</label>
+     <input type="number" id="fota_port" placeholder="80" data-clear-btn="true">
+     <label for="fota_path">Path</label>
+     <input type="text" id="fota_path" placeholder="Path" data-clear-btn="true">
+     <label for="fota_sec">Encryption</label>
+     <input type="checkbox" id="fota_sec" data-role="flipswitch">
     </div>
     <div class="ui-field-contain">
-     <label for="ota_user">Username</label>
-     <input type="text" id="ota_user" placeholder="Username" data-clear-btn="true">
-     <label for="ota_pw">Password</label>
-     <input type="text" id="ota_pw" placeholder="Password" data-clear-btn="true">
+     <label for="fota_user">Username</label>
+     <input type="text" id="fota_user" placeholder="Username" data-clear-btn="true">
+     <label for="fota_pw">Password</label>
+     <input type="text" id="fota_pw" placeholder="Password" data-clear-btn="true">
     </div>
     <div class="ui-field-contain">
-     <label for="ota_auto">Auto-Update</label>
-     <input type="checkbox" id="ota_auto" data-role="flipswitch">
+     <label for="fota_auto">Auto-Update</label>
+     <input type="checkbox" id="fota_auto" data-role="flipswitch">
     </div>
     <div class="ui-field-contain">
-     <label for="ota_current">Current Slot</label>
-     <input type="text" id="ota_current">
-     <label for="ota-fwlist">Slots</label>
-     <ul id="ota-fwlist" data-role="listview" data-count-theme="b" data-inset="true">
+     <label for="fota_current">Current Slot</label>
+     <input type="text" id="fota_current">
+     <label for="fota-fwlist">Slots</label>
+     <ul id="fota-fwlist" data-role="listview" data-count-theme="b" data-inset="true">
       <li>loading...</li>
      </ul>
     </div>
-    <button id="ota-save" class="ui-btn ui-corner-all ui-shadow ui-icon-check ui-btn-icon-left" style="margin-top: 25px;">Save</button>
+    <button id="fota-save" class="ui-btn ui-corner-all ui-shadow ui-icon-check ui-btn-icon-left" style="margin-top: 25px;">Save</button>
    </div>
    <div data-role="footer">
     <font size=-2>HoCo copyright (C) 2016 Tobias Hoff.</font>
@@ -478,7 +478,7 @@ window.addEventListener("load", init, false);
      <ul>
       <li><a href="#page-wifi">Wifi</a></li>
       <li><a href="#page-mqtt">MQTT</a></li>
-      <li><a href="#page-ota">OTA</a></li>
+      <li><a href="#page-fota">FOTA</a></li>
       <li><a href="#" class="ui-btn-active ui-state-persist">HoCo</a></li>
      </ul>
     </div>

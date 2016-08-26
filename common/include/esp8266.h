@@ -53,6 +53,9 @@ void ets_isr_unmask(unsigned intr);
 extern void ets_intr_lock();
 extern void ets_intr_unlock();
 
+int base64_decode(size_t in_len, const char *in, size_t out_len, unsigned char *out);
+int base64_encode(size_t in_len, const unsigned char *in, size_t out_len, char *out);
+
 #ifdef __cplusplus
 }
 #endif

@@ -3,9 +3,9 @@
 #include <user_interface.h>
 #include <spi_flash.h>
 #include <mem.h>
+#include <hw_config.h>
 /*
 #include <user_config.h>
-#include <hw_config.h>
 */
 
 void ICACHE_FLASH_ATTR boot_init() {
@@ -113,18 +113,8 @@ bool ICACHE_FLASH_ATTR boot_set_temp_rom(uint8 rom) {
 	return boot_set_status(&rtc);
 }
 
-/*
-bool ICACHE_FLASH_ATTR boot_get_current_rom(uint8 *rom) {
-	DEBUG("boot_get_current_rom");
-	bootloader_status rtc;
-	if (boot_get_status(&rtc)) {
-		*rom = rtc.current_rom;
-		return true;
-	}
-	return false;
-}
-
 int ICACHE_FLASH_ATTR boot_sys_info_rom(bootloader_config bc, char *entry, char *buff, int maxlen) {
+	DEBUG("boot_sys_info_rom");
 	char *buffend = buff;
 	uint8 slot = 0;
 	if (entry[0] != 'B')
@@ -135,6 +125,7 @@ int ICACHE_FLASH_ATTR boot_sys_info_rom(bootloader_config bc, char *entry, char 
 }
 
 int ICACHE_FLASH_ATTR boot_sys_info(bool hw, bool sw, char *buff, int maxlen) {
+	DEBUG("boot_sys_info");
 	char *buffend = buff;
 	buffend += ets_sprintf(buffend, "{");
 	if (hw)
@@ -152,6 +143,20 @@ int ICACHE_FLASH_ATTR boot_sys_info(bool hw, bool sw, char *buff, int maxlen) {
 		buffend--;
 	buffend += ets_sprintf(buffend, "}");
 	return buffend - buff;
+}
+
+
+
+
+/*
+bool ICACHE_FLASH_ATTR boot_get_current_rom(uint8 *rom) {
+	DEBUG("boot_get_current_rom");
+	bootloader_status rtc;
+	if (boot_get_status(&rtc)) {
+		*rom = rtc.current_rom;
+		return true;
+	}
+	return false;
 }
 
 bool ICACHE_FLASH_ATTR boot_ota_pending(char *type, uint8 major, uint8 minor, uint16 build) {

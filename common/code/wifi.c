@@ -4,20 +4,20 @@
 #include <sys_config.h>
 
 wifi_callback callback;
+wifi_scan_callback scan_callback;
 
 uint8 wifi_timeout;
 ETSTimer wifi_timer;
 
+const char *wifi_enc_types[6] = { "open", "wep", "wpa", "wpa2", "wpa_wpa2", 0 };
 
 /*
-wifiScanCallback scanCallback;
-
-const char *wifiEncTypes[6] = { "open", "wep", "wpa", "wpa2", "wpa_wpa2", 0 };
-int wifiStationCount = 0;
-bool wifiScanInProgress = false;
 bool wifiStationConfigChanged = true;
 bool wifiApConfigChanged = true;
 */
+
+bool wifi_scanning = false;
+int wifi_station_count = 0;
 
 void ICACHE_FLASH_ATTR wifi_connect_success() {
 	INFO("wifi_connect_success");
@@ -143,49 +143,61 @@ void ICACHE_FLASH_ATTR wifi_reinit(uint8 mode, bool force) {
 	wifi_init(mode, force, NULL);
 }
 
-/*
-void ICACHE_FLASH_ATTR wifiStartScan(wifiScanCallback cb) {
-	INFO("wifiStartScan");
-	if (wifiScanInProgress)
+int ICACHE_FLASH_ATTR wifi_station_known(uint8* mac) {
+	for (int i = 0; i < wifi_station_count; i++) {
+		bool same = true;
+		for (int j = 0; j < 6; j++)
+			if (wifi_stations[i].mac[j] != mac[j]) {
+				same = false;
+				break;
+			}
+		if (same)
+			return i;
+	}
+	return -1;
+}
+
+void ICACHE_FLASH_ATTR wifi_scan_done_cb(void *arg, STATUS status) {
+	INFO("wifi_scan_done_cb");
+	if (status == OK) {
+		scaninfo *c = arg;
+		struct bss_info *inf;
+		if (c->pbss) {
+			STAILQ_FOREACH(inf, c->pbss, next) {
+				INFO("%s", inf->ssid);
+				int i = wifi_station_known(inf->bssid);
+				if (i < 0 && wifi_station_count < WIFI_MAXSTATIONS) {
+					ets_memcpy(wifi_stations[wifi_station_count].name, inf->ssid, 32);
+					ets_memcpy(wifi_stations[wifi_station_count].mac, inf->bssid, 6);
+					wifi_stations[wifi_station_count].rssi = inf->rssi;
+					wifi_stations[wifi_station_count].channel = inf->channel;
+					wifi_stations[wifi_station_count].encryption = inf->authmode;
+					wifi_station_count++;
+					inf = (struct bss_info *)&inf->next;
+				} else {
+					wifi_stations[i].rssi = inf->rssi;
+				}
+			}
+			if (scan_callback)
+				scan_callback();
+		}
+	}
+	wifi_scanning = false;
+}
+
+void ICACHE_FLASH_ATTR wifi_scan(wifi_scan_callback cb, bool fresh) {
+	INFO("wifi_scan");
+	if (wifi_scanning)
 		return;
-	wifiScanInProgress = true;
-	scanCallback = cb;
-	wifiStationCount = 0;
+	wifi_scanning = true;
+	if (cb)
+		scan_callback = cb;
+	if (fresh)
+		wifi_station_count = 0;
 	struct scan_config sc;
 	sc.ssid = 0;
 	sc.bssid = 0;
 	sc.channel = 0;
 	sc.show_hidden = 1;
-	wifi_station_scan(&sc, wifiScanDoneCb);
+	wifi_station_scan(&sc, wifi_scan_done_cb);
 }
-
-void ICACHE_FLASH_ATTR wifiScanDoneCb(void *arg, STATUS status)
-{
-	INFO("wifiScanDoneCb");
-	if (status == OK) {
-		scaninfo *c = arg;
-		struct bss_info *inf;
-		if (!c->pbss) {
-			wifiStationCount = 0;
-			wifiScanInProgress = false;
-			return;
-		}
-		STAILQ_FOREACH(inf, c->pbss, next) {
-			INFO("%s", inf->ssid);
-			ets_memcpy(wifiStation[wifiStationCount].name, inf->ssid, 32);
-			ets_sprintf(wifiStation[wifiStationCount].mac, MACSTR, MAC2STR(inf->bssid));
-			wifiStation[wifiStationCount].rssi = inf->rssi;
-			wifiStation[wifiStationCount].channel = inf->channel;
-			wifiStation[wifiStationCount].encryption = inf->authmode;
-			inf = (struct bss_info *)&inf->next;
-			wifiStationCount++;
-			if (wifiStationCount == WIFI_MAXSTATIONS)
-				break;
-		}
-		wifiScanInProgress = false;
-		if (scanCallback)
-			scanCallback();
-	}
-	wifiScanInProgress = false;
-}
-*/

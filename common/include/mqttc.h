@@ -30,11 +30,8 @@ extern MqttState mqtt_state;
 void ICACHE_FLASH_ATTR mqtt_init(mqtt_state_callback scb, char *lwt_topic, char *lwt_data, mqtt_receive_callback rcb);
 void ICACHE_FLASH_ATTR mqtt_connect();
 void ICACHE_FLASH_ATTR mqtt_disconnect();
-
-/*
-void ICACHE_FLASH_ATTR mqttSubscribe(char *subtopic);
-void ICACHE_FLASH_ATTR mqttPublish(char *subtopic, char *data, bool retain);
-*/
+void ICACHE_FLASH_ATTR mqtt_subscribe(char *topic);
+void ICACHE_FLASH_ATTR mqtt_publish(char *topic, char *data, bool retain);
 
 #ifdef __cplusplus
 }
