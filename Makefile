@@ -41,26 +41,33 @@ common/bin/blank3s.bin:
 common/bin/blank4s.bin:
 	cat $(SDK_BASE)/bin/blank.bin $(SDK_BASE)/bin/blank.bin $(SDK_BASE)/bin/blank.bin $(SDK_BASE)/bin/blank.bin > common/bin/blank4s.bin
 
-flash: bootloader common/bin/blank3s.bin common/bin/blank4s.bin
+flash: bootloader factory common/bin/blank3s.bin common/bin/blank4s.bin
 	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
 		-ca $(ADDR_BOOTLOADER) -cf bootloader/$(FIRMWARE_BASE)/bootloader.bin \
+		-ca $(ADDR_SLOT_1) -cf factory/$(FIRMWARE_BASE)/factory.bin \
 		-ca $(ADDR_CONFIG_BOOT) -cf $(SDK_BASE)/bin/blank.bin \
 		-ca $(ADDR_CONFIG_SYS) -cf common/bin/blank3s.bin \
 		-ca $(ADDR_CONFIG_HW) -cf common/bin/blank3s.bin \
 		-ca $(ADDR_CONFIG_SDK_CALI) -cf common/bin/blank4s.bin \
 		-ca $(ADDR_CONFIG_SDK) -cf $(SDK_BASE)/bin/esp_init_data_default.bin
 
-#flash: bootloader factory common/bin/blank3s.bin common/bin/blank4s.bin
-#	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
-#		-ca $(ADDR_BOOTLOADER) -cf bootloader/$(FIRMWARE_BASE)/bootloader.bin \
-#		-ca $(ADDR_SLOT_1) -cf factory/$(FIRMWARE_BASE)/factory.bin \
-#		-ca $(ADDR_CONFIG_BOOT) -cf $(SDK_BASE)/bin/blank.bin \
-#		-ca $(ADDR_CONFIG_SYS) -cf common/bin/blank3s.bin \
-#		-ca $(ADDR_CONFIG_HW) -cf common/bin/blank3s.bin \
-#		-ca $(ADDR_CONFIG_SDK_CALI) -cf common/bin/blank4s.bin \
-#		-ca $(ADDR_CONFIG_SDK) -cf $(SDK_BASE)/bin/esp_init_data_default.bin
+flash_bootloader:
+	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
+		-ca $(ADDR_BOOTLOADER) -cf bootloader/$(FIRMWARE_BASE)/bootloader.bin
 
-wipe:
+flash_factory:
+	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
+		-ca $(ADDR_SLOT_1) -cf factory/$(FIRMWARE_BASE)/factory.bin
+
+flash_reset: common/bin/blank3s.bin common/bin/blank4s.bin
+	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
+		-ca $(ADDR_CONFIG_BOOT) -cf $(SDK_BASE)/bin/blank.bin \
+		-ca $(ADDR_CONFIG_SYS) -cf common/bin/blank3s.bin \
+		-ca $(ADDR_CONFIG_HW) -cf common/bin/blank3s.bin \
+		-ca $(ADDR_CONFIG_SDK_CALI) -cf common/bin/blank4s.bin \
+		-ca $(ADDR_CONFIG_SDK) -cf $(SDK_BASE)/bin/esp_init_data_default.bin
+
+flash_wipe: 
 	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
 		-ca 0x000000 -cf common/bin/blank_1MB.bin \
 		-ca 0x100000 -cf common/bin/blank_1MB.bin \

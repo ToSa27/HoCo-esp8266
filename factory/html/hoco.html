@@ -69,7 +69,7 @@ function connParseObj(obj) {
   switch (obj.data) {
    case "wifi":
     $("#wifi_st_ssid").val(obj.st.ssid);
-    $("#wifi_st_pw").val(obj.st.pw);
+//    $("#wifi_st_pw").val(obj.st.pw);
     $("#wifi_mode").val(obj.mode);
     $("#wifi_mode").trigger("change");
     $("#wifi_phy").val(obj.phy);
@@ -93,7 +93,7 @@ function connParseObj(obj) {
     else
      $("#mqtt_sec").flipswitch().prop('checked', obj.sec == 1).flipswitch('refresh');
     $("#mqtt_user").val(obj.user);
-    $("#mqtt_pw").val(obj.pw);
+//    $("#mqtt_pw").val(obj.pw);
     break;
    case "fota":
     $("#fota_host").val(obj.host);
@@ -104,7 +104,7 @@ function connParseObj(obj) {
     else
      $("#fota_sec").flipswitch().prop('checked', obj.sec == 1).flipswitch('refresh');
     $("#fota_user").val(obj.user);
-    $("#fota_pw").val(obj.pw);
+//    $("#fota_pw").val(obj.pw);
     if ($("#fota_auto").hasClass('ui-flipswitch'))
      $("#fota_auto").prop('checked', obj.auto == 1).flipswitch('refresh');
     else
@@ -334,7 +334,7 @@ window.addEventListener("load", init, false);
      <label for="wifi_st_ssid">SSID</label>
      <input type="text" id="wifi_st_ssid" placeholder="SSID" data-clear-btn="true">
      <label for="wifi_st_pw">Password</label>
-     <input type="text" id="wifi_st_pw" placeholder="Password" data-clear-btn="true">
+     <input type="text" id="wifi_st_pw" placeholder="(unchanged)" data-clear-btn="true">
     </div>
     <a href="#panel-wifi-scan" class="ui-btn ui-corner-all ui-shadow ui-icon-search ui-btn-icon-left" style="margin-top: 25px;">Scan</a>
     <button id="wifi-save" class="ui-btn ui-corner-all ui-shadow ui-icon-check ui-btn-icon-left" style="margin-bottom: 25px;">Save</button>
@@ -412,7 +412,7 @@ window.addEventListener("load", init, false);
      <label for="mqtt_user">Username</label>
      <input type="text" id="mqtt_user" placeholder="Username" data-clear-btn="true">
      <label for="mqtt_pw">Password</label>
-     <input type="text" id="mqtt_pw" placeholder="Password" data-clear-btn="true">
+     <input type="text" id="mqtt_pw" placeholder="(unchanged)" data-clear-btn="true">
     </div>
     <button id="mqtt-save" class="ui-btn ui-corner-all ui-shadow ui-icon-check ui-btn-icon-left" style="margin-top: 25px;">Save</button>
    </div>
@@ -449,7 +449,7 @@ window.addEventListener("load", init, false);
      <label for="fota_user">Username</label>
      <input type="text" id="fota_user" placeholder="Username" data-clear-btn="true">
      <label for="fota_pw">Password</label>
-     <input type="text" id="fota_pw" placeholder="Password" data-clear-btn="true">
+     <input type="text" id="fota_pw" placeholder="(unchanged)" data-clear-btn="true">
     </div>
     <div class="ui-field-contain">
      <label for="fota_auto">Auto-Update</label>

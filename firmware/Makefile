@@ -16,12 +16,9 @@ OBJCOPY					= $(XTENSA_BINDIR)/xtensa-lx106-elf-objcopy
 TARGET					= factory
 MODULES					= user
 LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl
-#COMMONS					= tick cjson wifi user_mqtt user_ota pin
-COMMONS					= boot sys_config hw_config
-#COMMONMODULES			= TimeLib CppJson
-COMMONMODULES			= 
-#HANGDEVICES				= DIn DOut
-HANGDEVICES				= 
+COMMONS					= boot sys_config hw_config wifi mqttc cjson tick pin
+COMMONMODULES			= TimeLib CppJson
+HANGDEVICES				= DIn DOut
 
 # build and firmware locations
 BUILD_BASE				= build
@@ -44,8 +41,7 @@ MQTT_LIB_SRC			= $(addprefix $(MQTT_DIR)/lib,$(MQTT).a)
 MQTT_LIB				= $(addprefix $(BUILD_BASE)/lib,$(MQTT).a)
 HANG					= hang
 HANG_LIB				= $(addprefix $(BUILD_BASE)/lib,$(HANG).a)
-#HANG_SRC				= Base Device
-HANG_SRC				= 
+HANG_SRC				= Base Device
 HANG_SRC				+= $(HANGDEVICES)
 HANG_SRC				:= $(addprefix $(HANG)/Hang,$(HANG_SRC))
 HANG_SRC				:= $(addsuffix .cpp,$(HANG_SRC))
@@ -121,12 +117,16 @@ $1/%.o: %.cpp
 	$(CPP) $(INCDIRS) $(CPPFLAGS) $(DEFINES) -c $$< -o $$@
 endef
 
-vpath %.c ../common/modules/$(COMMONMODULES)
-vpath %.cpp ../common/modules/$(COMMONMODULES)
+vpath %.c $(addprefix ../common/modules/,$(COMMONMODULES))
+vpath %.cpp $(addprefix ../common/modules/,$(COMMONMODULES))
 define compile-common-modules
 $1/%.o: %.c
+	@echo CompCommMod C: $$< - $$@
+	@echo BDC: $(BUILD_DIRS_COMMON)
 	$(CC) $(INCDIRS) $(CFLAGS) $(DEFINES) -c $$< -o $$@
 $1/%.o: %.cpp
+	@echo CompCommMod CPP: $$< - $$@
+	@echo BDC: $(BUILD_DIRS_COMMON)
 	$(CPP) $(INCDIRS) $(CPPFLAGS) $(DEFINES) -c $$< -o $$@
 endef
 
@@ -180,6 +180,8 @@ $(HANG_LIB): $(HANG_OBJ)
 	$(AR) cru $@ $(HANG_OBJ)
 
 $(TARGET_LIB): $(OBJ)
+	@echo OBJ:
+	@echo $(OBJ)
 	$(AR) cru $@ $(OBJ)
 
 $(TARGET_ELF): $(MAIN_LIB) $(MQTT_LIB) $(HANG_LIB) $(TARGET_LIB)

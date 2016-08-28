@@ -1,25 +1,13 @@
 #include <mqttc.h>
-
 #include <mqtt.h>
-
 #include <esp8266.h>
 #include <debug.h>
 #include <osapi.h>
 #include <mem.h>
+#include <boot.h>
 #include <sys_config.h>
 #include <hw_config.h>
-
-/*
 #include <user_config.h>
-#include <boot.h>
-#include <user_ota.h>
-#include <cjson.h>
-
-#ifdef FIRMWARE
-#include <TimeLib.h>
-#endif
-*/
-//bool mqttConfigChanged = true;
 
 MQTT_Client mqtt_client;
 MqttState mqtt_state = MQTT_UNKNOWN;
@@ -40,42 +28,6 @@ void ICACHE_FLASH_ATTR mqtt_connected(uint32_t *args) {
 	DEBUG("mqtt_Connected");
 //	MQTT_Client* client = (MQTT_Client*)args;
 	mqtt_set_state(MQTT_CONNECTED);
-/*
-	mqttSubscribeBroadcast("$time");
-	mqttSubscribe("$reset");
-	mqttSubscribe("$ota");
-//	mqttSubscribe("$name");
-//	mqttPublish("$online", "true", true);
-	mqttPublish("$name", SysConfig.DeviceName, true);
-	mqttPublish("$hwtype", HwConfig.Type, true);
-	char data[32];
-	os_memset(data, 0, sizeof(data));
-	ets_sprintf(data, "%d", HwConfig.Rev);
-	mqttPublish("$hwrev", data, true);
-	mqttPublish("$fwtype", ROM_TYPE, true);
-	os_memset(data, 0, sizeof(data));
-	ets_sprintf(data, "%d.%d-%d", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD);
-	mqttPublish("$fwver", data, true);
-	os_memset(data, 0, sizeof(data));
-	struct ip_info ipi;
-	wifi_get_ip_info(STATION_IF, &ipi);
-	ets_sprintf(data, IPSTR, IP2STR(&ipi.ip));
-	mqttPublish("$ip", data, true);
-	os_memset(data, 0, sizeof(data));
-	ets_sprintf(data, "%d", wifi_station_get_rssi());
-	mqttPublish("$signal", data, true);
-
-
-	// ToDo : announce nodes
-//	os_memset(data, 0, sizeof(data));
-//	ets_sprintf(data, "%s:%s", , );
-//	mqttPublish("nodes", data, true);
-
-
-	mqttOtaCheck(false);
-	if (establishedCb)
-		establishedCb();
-*/
 }
 
 void ICACHE_FLASH_ATTR mqtt_disconnected(uint32_t *args) {
@@ -91,7 +43,7 @@ void ICACHE_FLASH_ATTR mqtt_published(uint32_t *args) {
 
 void ICACHE_FLASH_ATTR mqtt_data(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
 	DEBUG("mqtt_data");
-	//	MQTT_Client* client = (MQTT_Client*)args;
+//	MQTT_Client* client = (MQTT_Client*)args;
 	char *topicBuf = (char*)os_zalloc(topic_len+1);
 	char *dataBuf = (char*)os_zalloc(data_len+1);
 	os_memcpy(topicBuf, topic, topic_len);
@@ -101,61 +53,6 @@ void ICACHE_FLASH_ATTR mqtt_data(uint32_t *args, const char* topic, uint32_t top
 	INFO("MQTT: Received topic: %s, data: %s \r\n", topicBuf, dataBuf);
 	if (receive_callback)
 		receive_callback(topicBuf, dataBuf);
-/*
-	char *subtopicBuf = topicBuf;
-	if (ets_strstr(subtopicBuf, "/hang/") == subtopicBuf) {
-		subtopicBuf += 6;
-		if (subtopicBuf[0] == '$') {
-			subtopicBuf += 1;
-#ifdef FIRMWARE
-			if (ets_strstr(subtopicBuf, "time") == subtopicBuf) {
-				subtopicBuf += 4;
-				char *subdataBuf = dataBuf;
-				uint32_t t = atoi(subdataBuf);
-				subdataBuf = ets_strstr(subdataBuf, "/") + 1;
-				int32_t o = atoi(subdataBuf);
-				setTimeAndOffsetC(t, o);
-			}
-#endif
-			// ToDo : handle broadcast topic
-		} else if (ets_strstr(subtopicBuf, SysConfig.DeviceId) == subtopicBuf) {
-			subtopicBuf += ets_strlen(SysConfig.DeviceId);
-			if (subtopicBuf[0] == '/') {
-				subtopicBuf += 1;
-				if (subtopicBuf[0] == '$') {
-					subtopicBuf += 1;
-					if (ets_strstr(subtopicBuf, "reset") == subtopicBuf) {
-						if (ets_strstr(dataBuf, "factory") == dataBuf)
-							boot_reboot_to_factory();
-						else
-							boot_reboot();
-					} else if (ets_strstr(subtopicBuf, "ota") == subtopicBuf) {
-#ifdef FACTORY
-						otaAutoStartJson(dataBuf);
-#endif
-#ifdef FIRMWARE
-						char type[10];
-						JsonGetStr(dataBuf, "type", type, sizeof(type));
-						if (type[0] != 0) {
-							uint8 major = (uint8)JsonGetUInt(dataBuf, "major");
-							uint8 minor = (uint8)JsonGetUInt(dataBuf, "minor");
-							uint16 build = (uint16)JsonGetUInt(dataBuf, "build");
-							if (boot_ota_pending(type, major, minor, build))
-								boot_reboot_to_factory();
-						}
-#endif
-					} else if (ets_strstr(subtopicBuf, "config/$set") == subtopicBuf) {
-						ets_memset(HwConfig.Conf, 0, sizeof(HwConfig.Conf));
-						ets_strcpy(HwConfig.Conf, dataBuf);
-					}
-				} else {
-					if (receivedCb)
-						receivedCb(subtopicBuf, dataBuf);
-				}
-			}
-		}
-	}
-*/
 	os_free(topicBuf);
 	os_free(dataBuf);
 }
@@ -197,24 +94,68 @@ void ICACHE_FLASH_ATTR mqtt_disconnect() {
 	mqtt_set_state(MQTT_DISCONNECTED);
 }
 
-void ICACHE_FLASH_ATTR mqtt_subscribe(char *topic) {
-	MQTT_Subscribe(&mqtt_client, topic, 0);
+void ICACHE_FLASH_ATTR mqtt_announce() {
+	DEBUG("mqtt_announce");
+	mqtt_subscribe("$reset");
+	mqtt_subscribe("$fota");
+	mqtt_publish("$name", SysConfig.DeviceName, true);
+	mqtt_publish("$hwtype", HwConfig.Type, true);
+	char data[32];
+	ets_memset(data, 0, sizeof(data));
+	ets_sprintf(data, "%d", HwConfig.Rev);
+	mqtt_publish("$hwrev", data, true);
+	mqtt_publish("$fwtype", ROM_TYPE, true);
+	ets_memset(data, 0, sizeof(data));
+	ets_sprintf(data, "%d.%d-%d", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD);
+	mqtt_publish("$fwver", data, true);
+	ets_memset(data, 0, sizeof(data));
+	struct ip_info ipi;
+	wifi_get_ip_info(STATION_IF, &ipi);
+	ets_sprintf(data, IPSTR, IP2STR(&ipi.ip));
+	mqtt_publish("$ip", data, true);
+	ets_memset(data, 0, sizeof(data));
+	ets_sprintf(data, "%d", wifi_station_get_rssi());
+	mqtt_publish("$signal", data, true);
 }
 
-void ICACHE_FLASH_ATTR mqtt_publish(char *topic, char *data, bool retain) {
-	MQTT_Publish(&mqtt_client, topic, data, os_strlen(data), 0, retain ? 1 : 0);
-}
-
-/*
-void ICACHE_FLASH_ATTR mqttOtaCheck(bool force) {
-	DEBUG("mqttOtaCheck");
-	if (!SysConfig.OtaAuto && !force)
+void ICACHE_FLASH_ATTR mqtt_fota_check(bool force) {
+	DEBUG("mqtt_fota_check");
+	if (!SysConfig.FotaAuto && !force)
 		return;
 	int maxlen = 500;
 	char buff[500];
 	char *buffend = buff;
 	buffend += boot_sys_info(true, true, buffend, maxlen - (buffend - buff));
 	buffend[0] = 0;
-	mqttPublish("$ota/check", buff, false);
+	mqtt_publish("$fota/check", buff, false);
 }
-*/
+
+// topic: "/hoco/{subtopic}"
+// qos: 0
+void ICACHE_FLASH_ATTR mqtt_subscribe_broadcast(char *subtopic) {
+	DEBUG("mqtt_subscribe_broadcast");
+	char topic[35];
+	ets_memset(topic, 0, sizeof(topic));
+	ets_sprintf(topic, "/hoco/%s", subtopic);
+	MQTT_Subscribe(&mqtt_client, topic, 0);
+}
+
+// topic: "/hoco/{DeviceId}/{subtopic}"
+// qos: 0
+void ICACHE_FLASH_ATTR mqtt_subscribe(char *subtopic) {
+	DEBUG("mqtt_subscribe");
+	char topic[35];
+	ets_memset(topic, 0, sizeof(topic));
+	ets_sprintf(topic, "/hoco/%s/%s", SysConfig.DeviceId, subtopic);
+	MQTT_Subscribe(&mqtt_client, topic, 0);
+}
+
+// topic: "/hoco/{DeviceId}/{subtopic}"
+// qos: 0
+void ICACHE_FLASH_ATTR mqtt_publish(char *subtopic, char *data, bool retain) {
+	DEBUG("mqtt_publish");
+	char topic[35];
+	ets_memset(topic, 0, sizeof(topic));
+	ets_sprintf(topic, "/hoco/%s/%s", SysConfig.DeviceId, subtopic);
+	MQTT_Publish(&mqtt_client, topic, data, os_strlen(data), 0, retain ? 1 : 0);
+}

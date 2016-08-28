@@ -4,12 +4,8 @@
 #include <spi_flash.h>
 #include <mem.h>
 #include <hw_config.h>
-/*
-#include <user_config.h>
-*/
 
 void ICACHE_FLASH_ATTR boot_init() {
-	DEBUG("boot_init");
 	system_set_os_print(0);
 	ets_printf("\r\nHoCo %s v%d.%d-%d\r\n", ROM_TYPE, VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD);
 	wifi_station_set_auto_connect(false);
@@ -157,31 +153,5 @@ bool ICACHE_FLASH_ATTR boot_get_current_rom(uint8 *rom) {
 		return true;
 	}
 	return false;
-}
-
-bool ICACHE_FLASH_ATTR boot_ota_pending(char *type, uint8 major, uint8 minor, uint16 build) {
-	DEBUG("boot_ota_pending");
-	bootloader_config bc;
-	if (!boot_get_config(&bc))
-		return false;
-	uint8 latest;
-	if (ets_strcmp(type, "BOOTLOADER") == 0)
-		latest = 0;
-	else {
-		latest = boot_find_latest(bc, type);
-		if (latest == 0)
-			return true;
-	}
-	if (major < bc.roms[latest].major)
-		return false;
-	if (major == bc.roms[latest].major) {
-		if (minor < bc.roms[latest].minor)
-			return false;
-		if (minor == bc.roms[latest].minor) {
-			if (build <= bc.roms[latest].build)
-				return false;
-		}
-	}
-	return true;
 }
 */

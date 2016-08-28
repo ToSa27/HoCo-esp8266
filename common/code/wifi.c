@@ -3,40 +3,51 @@
 #include <user_interface.h>
 #include <sys_config.h>
 
-wifi_callback callback;
+WifiStState wifi_st_state = WIFI_ST_UNKNOWN;
+//WifiApState wifi_ap_state = WIFI_ST_UNKNOWN;
+
+wifi_st_state_callback st_state_callback;
+//wifi_ap_state_callback ap_state_callback;
 wifi_scan_callback scan_callback;
+
+void ICACHE_FLASH_ATTR wifi_set_st_state(WifiStState state) {
+	DEBUG("wifi_set_st_state");
+	if (wifi_st_state != state) {
+		wifi_st_state = state;
+		if (st_state_callback)
+			st_state_callback(wifi_get_opmode(), wifi_st_state);
+	}
+}
 
 uint8 wifi_timeout;
 ETSTimer wifi_timer;
 
 const char *wifi_enc_types[6] = { "open", "wep", "wpa", "wpa2", "wpa_wpa2", 0 };
 
-/*
-bool wifiStationConfigChanged = true;
-bool wifiApConfigChanged = true;
-*/
+bool wifi_station_config_changed = true;
+bool wifi_ap_config_changed = true;
 
 bool wifi_scanning = false;
 int wifi_station_count = 0;
 
 void ICACHE_FLASH_ATTR wifi_connect_success() {
 	INFO("wifi_connect_success");
-	if (callback)
-		callback(wifi_get_opmode(), true);
+	wifi_set_st_state(WIFI_ST_CONNECTED);
 }
 
 void ICACHE_FLASH_ATTR wifi_connect_failure() {
 	INFO("wifi_connect_failure");
 	wifi_station_disconnect();
-	if (callback)
-		callback(wifi_get_opmode(), false);
+	wifi_set_st_state(WIFI_ST_DISCONNECTED);
 }
 
 bool ICACHE_FLASH_ATTR wifi_has_station() {
 	DEBUG("wifi_has_station");
 	struct station_config cst;
 	wifi_station_get_config(&cst);
-	return cst.ssid[0] != 0;
+	if (cst.ssid[0] == 0)
+		return false;
+	INFO("station: %s", cst.ssid);
 }
 
 void ICACHE_FLASH_ATTR wifi_timer_cb(void *arg) {
@@ -77,21 +88,23 @@ void ICACHE_FLASH_ATTR wifi_timer_cb(void *arg) {
 
 void ICACHE_FLASH_ATTR wifi_station() {
 	INFO("wifi_station");
-//	if (!wifiStationConfigChanged)
-//		return;
+	if (!wifi_station_config_changed && !wifi_st_state == WIFI_ST_CONNECTING)
+		return;
+	wifi_station_config_changed = false;
+	wifi_set_st_state(WIFI_ST_CONNECTING);
 	wifi_station_set_hostname(SysConfig.DeviceId);
 	wifi_timeout = 15;
 	ets_timer_disarm(&wifi_timer);
 	ets_timer_setfn(&wifi_timer, (os_timer_func_t *)wifi_timer_cb, NULL);
 	ets_timer_arm_new(&wifi_timer, 1000, 0, 1);
 	wifi_station_connect();
-//	wifiStationConfigChanged = false;
 }
 
 void ICACHE_FLASH_ATTR wifi_ap() {
 	INFO("wifi_ap");
-//	if (!wifiApConfigChanged)
-//		return;
+	if (!wifi_ap_config_changed)
+		return;
+	wifi_ap_config_changed = false;
 	wifi_softap_dhcps_stop();
 	struct softap_config conf;
 	wifi_softap_get_config(&conf);
@@ -117,15 +130,14 @@ void ICACHE_FLASH_ATTR wifi_ap() {
 	wifi_set_broadcast_if(STATIONAP_MODE);
 	wifi_softap_set_config(&conf);
 	wifi_softap_dhcps_start();
-//	wifiApConfigChanged = false;
 	INFO("AccessPoint: %s", conf.ssid);
 }
 
-void ICACHE_FLASH_ATTR wifi_init(uint8 mode, bool force, wifi_callback cb) {
+void ICACHE_FLASH_ATTR wifi_init(uint8 mode, bool force, wifi_st_state_callback cb) {
 	DEBUG("wifi_init");
 	INFO("WifiInit - mode: %d->%d", wifi_get_opmode(), mode);
 	if (cb)
-		callback = cb;
+		st_state_callback = cb;
 	if ((mode & STATION_MODE) && !wifi_has_station() && !force) {
 		INFO("No WiFi Station config -> AP");
 		mode = SOFTAP_MODE;

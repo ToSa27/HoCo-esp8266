@@ -7,6 +7,19 @@ extern "C" {
 
 #include <esp8266.h>
 
+typedef enum {
+	WIFI_ST_UNKNOWN,
+	WIFI_ST_DISCONNECTED,
+	WIFI_ST_CONNECTING,
+	WIFI_ST_CONNECTED,
+} WifiStState;
+
+//typedef enum {
+//	WIFI_AP_UNKNOWN,
+//	WIFI_AP_DISABLED,
+//	WIFI_ST_ENABLED,
+//} WifiApState;
+
 #define WIFI_MAXSTATIONS 20
 
 struct WifiStation
@@ -19,23 +32,18 @@ struct WifiStation
 } wifi_stations[WIFI_MAXSTATIONS] __attribute__((aligned(4)));
 
 extern int wifi_station_count;
+extern bool wifi_scanning;
 extern const char *wifi_enc_types[6];
 
-/*
-extern bool wifiStationConfigChanged;
-extern bool wifiApConfigChanged;
-extern int wifiStationCount;
-extern bool wifiStationConnected;
-*/
-extern bool wifi_scanning;
+extern bool wifi_station_config_changed;
+extern bool wifi_ap_config_changed;
 
-typedef void (*wifi_callback)(uint8 mode, bool connected);
+typedef void (*wifi_st_state_callback)(uint8 mode, WifiStState state);
 typedef void (*wifi_scan_callback)();
 
-void ICACHE_FLASH_ATTR wifi_init(uint8 mode, bool force, wifi_callback cb);
+void ICACHE_FLASH_ATTR wifi_init(uint8 mode, bool force, wifi_st_state_callback cb);
 void ICACHE_FLASH_ATTR wifi_reinit(uint8 mode, bool force);
 void ICACHE_FLASH_ATTR wifi_scan(wifi_scan_callback cb, bool fresh);
-//void ICACHE_FLASH_ATTR wifiScanDoneCb(void *arg, STATUS status);
 
 #ifdef __cplusplus
 }

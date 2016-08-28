@@ -18,7 +18,12 @@ void ICACHE_FLASH_ATTR sys_config_load(bool reset) {
 			wifi_get_macaddr(1, mac);
 		ets_sprintf(SysConfig.DeviceId, "%s%02X%02X%02X", DEVICE_ID_PREFIX, mac[3], mac[4], mac[5]);
 		ets_sprintf(SysConfig.DeviceName, "Default");
+		ets_sprintf(SysConfig.FotaUser, "hoco");
+		ets_sprintf(SysConfig.FotaPath, "/hoco/fota");
+		SysConfig.FotaPort = 1885;
 		SysConfig.FotaAuto = true;
+		ets_sprintf(SysConfig.MqttUser, "hoco");
+		SysConfig.MqttPort = 1883;
 		SysConfig.MqttKeepAlive = 120;
 		sys_config_save();
 	}

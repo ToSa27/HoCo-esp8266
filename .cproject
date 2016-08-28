@@ -18,7 +18,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.mingw.exe.release.1221115385." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.mingw.exe.release.159932872" name="MinGW GCC" superClass="cdt.managedbuild.toolchain.gnu.mingw.exe.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.mingw.exe.release.719839183" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.mingw.exe.release"/>
-							<builder arguments="-f ${ProjDirPath}/Makefile" command="mingw32-make.exe" id="cdt.managedbuild.builder.gnu.cross.1428283319" managedBuildOn="false" superClass="cdt.managedbuild.builder.gnu.cross"/>
+							<builder arguments="-f ${ProjDirPath}/Makefile" command="mingw32-make.exe" id="cdt.managedbuild.builder.gnu.cross.1428283319" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.mingw.exe.release.169948313" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.mingw.exe.release">
 								<option id="gnu.both.asm.option.include.paths.858929467" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\Espressif\ESP8266_SDK\include&quot;"/>
@@ -90,7 +90,6 @@
 		<buildTargets>
 			<target name="bootloader" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
-				<buildArguments/>
 				<buildTarget>bootloader</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -124,6 +123,38 @@
 				<buildCommand>mingw32-make.exe</buildCommand>
 				<buildArguments>-f ${ProjDirPath}/Makefile</buildArguments>
 				<buildTarget>firmware</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="flash_bootloader" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>mingw32-make.exe</buildCommand>
+				<buildArguments>-f ${ProjDirPath}/Makefile</buildArguments>
+				<buildTarget>flash_bootloader</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="flash_factory" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>mingw32-make.exe</buildCommand>
+				<buildArguments>-f ${ProjDirPath}/Makefile</buildArguments>
+				<buildTarget>flash_factory</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="flash_reset" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>mingw32-make.exe</buildCommand>
+				<buildArguments>-f ${ProjDirPath}/Makefile</buildArguments>
+				<buildTarget>flash_reset</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="flash_wipe" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>mingw32-make.exe</buildCommand>
+				<buildArguments>-f ${ProjDirPath}/Makefile</buildArguments>
+				<buildTarget>flash_wipe</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>

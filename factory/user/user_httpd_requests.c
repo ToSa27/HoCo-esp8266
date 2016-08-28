@@ -16,6 +16,7 @@
 #include <mqttc.h>
 
 int ICACHE_FLASH_ATTR accessPointResponse(char *buff, int maxlen) {
+	DEBUG("accessPointResponse");
 	char *buffend = buff;
 	buffend += ets_sprintf(buffend, "{\"data\":\"wifi\",\"cmd\":\"scan\"");
 	buffend += ets_sprintf(buffend, ",\"busy\":\"%d\"", wifi_scanning ? 1 : 0);
@@ -40,6 +41,7 @@ int ICACHE_FLASH_ATTR accessPointResponse(char *buff, int maxlen) {
 }
 
 int ICACHE_FLASH_ATTR wifiRead(char *buff, int maxlen) {
+	DEBUG("wifiRead");
 	char *buffend = buff;
 	buffend += ets_sprintf(buffend, "{\"data\":\"wifi\",\"cmd\":\"read\"");
 	buffend += ets_sprintf(buffend, ",\"mode\":");
@@ -91,7 +93,7 @@ int ICACHE_FLASH_ATTR wifiRead(char *buff, int maxlen) {
 	buffend += ets_sprintf(buffend, "},\"st\":{");
 	buffend += ets_sprintf(buffend, "\"mac\":\""MACSTR"\"", MAC2STR(mac));
 	buffend += ets_sprintf(buffend, ",\"ssid\":\"%s\"", wst.ssid);
-	buffend += ets_sprintf(buffend, ",\"pw\":\"%s\"", wst.password);
+//	buffend += ets_sprintf(buffend, ",\"pw\":\"%s\"", wst.password);
 	wifi_get_ip_info(STATION_IF, &ipi);
 	buffend += ets_sprintf(buffend, ",\"ip\":\""IPSTR"\"", IP2STR(&ipi.ip));
 	buffend += ets_sprintf(buffend, ",\"rssi\":\"%d\"", wifi_station_get_rssi());
@@ -122,9 +124,67 @@ int ICACHE_FLASH_ATTR wifiRead(char *buff, int maxlen) {
 	return buffend - buff;
 }
 
+/*
+void wifiWrite(char *reqdata) {
+	DEBUG("wifiWrite");
+	char *val;
+	int ival;
+	val = JsonGet(reqdata, "st");
+	if (val != NULL) {
+		val++;
+		struct station_config cst;
+		wifi_station_get_config(&cst);
+		char ssid[32];
+		JsonGetStr(val, "ssid", ssid, sizeof(ssid));
+		if (ets_strcmp(ssid, cst.ssid) != 0) {
+			ets_memset(cst.ssid, 0, sizeof(cst.ssid));
+			ets_strcpy(cst.ssid, ssid);
+			wifi_station_config_changed = true;
+		}
+		char pw[64];
+		JsonGetStr(val, "pw", pw, sizeof(pw));
+		if (ets_strcmp(pw, cst.password) != 0) {
+			ets_memset(cst.password, 0, sizeof(cst.password));
+			ets_strcpy(cst.password, pw);
+			wifi_station_config_changed = true;
+		}
+		if (wifi_station_config_changed) {
+			cst.bssid_set = 0;
+			wifi_station_set_config(&cst);
+			INFO("Station config: %s / %s", cst.ssid, cst.password);
+		}
+	}
+	val = JsonGet(reqdata, "phy");
+	if (val != NULL) {
+		val++;
+		ival = PHY_MODE_11N;
+		if (val[0] == 'b')
+			ival = PHY_MODE_11B;
+		else if (val[0] == 'g')
+			ival = PHY_MODE_11G;
+		if (ival != wifi_get_phy_mode())
+			wifi_set_phy_mode(ival);
+	}
+	val = JsonGet(reqdata, "mode");
+	if (val != NULL) {
+		val++;
+		ival = STATIONAP_MODE;
+		if (ets_strstr(val, "st") == val)
+			ival = STATION_MODE;
+		else if (ets_strstr(val, "ap") == val)
+			ival = SOFTAP_MODE;
+		if (ival != wifi_get_opmode())
+			wifi_set_opmode(ival);
+	}
+//	if (wifi_station_config_changed) {
+//		if (!(wifi_get_opmode() & STATION_MODE))
+//			wifi_reinit(wifi_get_opmode() + STATION_MODE, true);
+//	}
+}
+*/
+
 void wifiWrite(char *reqdata) {
 	INFO("wifiWrite");
-	bool wifiStationConfigChanged = false;
 	char *val;
 	int ival;
 	val = JsonGet(reqdata, "mode");
@@ -159,18 +219,21 @@ void wifiWrite(char *reqdata) {
 		if (ets_strcmp(ssid, cst.ssid) != 0) {
 			ets_memset(cst.ssid, 0, sizeof(cst.ssid));
 			ets_strcpy(cst.ssid, ssid);
-			wifiStationConfigChanged = true;
+			wifi_station_config_changed = true;
 		}
 		char pw[64];
 		JsonGetStr(val, "pw", pw, sizeof(pw));
-		if (ets_strcmp(pw, cst.password) != 0) {
-			ets_memset(cst.password, 0, sizeof(cst.password));
-			ets_strcpy(cst.password, pw);
-			wifiStationConfigChanged = true;
+		if (ets_strlen(pw) > 0) {
+			if (ets_strcmp(pw, cst.password) != 0) {
+				ets_memset(cst.password, 0, sizeof(cst.password));
+				ets_strcpy(cst.password, pw);
+				wifi_station_config_changed = true;
+			}
 		}
-		if (wifiStationConfigChanged) {
+		if (wifi_station_config_changed) {
 			if (!(wifi_get_opmode() & STATION_MODE))
 				wifi_reinit(wifi_get_opmode() + STATION_MODE, true);
+				//wifiInit(wifi_get_opmode() + STATION_MODE, true, wifi_cb);
 			cst.bssid_set = 0;
 			wifi_station_set_config(&cst);
 			INFO("Station config: %s / %s", cst.ssid, cst.password);
@@ -179,6 +242,7 @@ void wifiWrite(char *reqdata) {
 }
 
 int ICACHE_FLASH_ATTR fotaRead(char *buff, int maxlen) {
+	DEBUG("fotaRead");
 	char *buffend = buff;
 	buffend += ets_sprintf(buffend, "{\"data\":\"fota\",\"cmd\":\"read\"");
 	buffend += ets_sprintf(buffend, ",\"host\":\"%s\"", SysConfig.FotaHost);
@@ -186,7 +250,7 @@ int ICACHE_FLASH_ATTR fotaRead(char *buff, int maxlen) {
 	buffend += ets_sprintf(buffend, ",\"path\":\"%s\"", SysConfig.FotaPath);
 	buffend += ets_sprintf(buffend, ",\"sec\":%d", SysConfig.FotaSecure);
 	buffend += ets_sprintf(buffend, ",\"user\":\"%s\"", SysConfig.FotaUser);
-	buffend += ets_sprintf(buffend, ",\"pw\":\"%s\"", SysConfig.FotaPass);
+//	buffend += ets_sprintf(buffend, ",\"pw\":\"%s\"", SysConfig.FotaPass);
 	buffend += ets_sprintf(buffend, ",\"auto\":%d", SysConfig.FotaAuto);
 	bootloader_status romstat;
 	if (boot_get_status(&romstat)) {
@@ -200,17 +264,22 @@ int ICACHE_FLASH_ATTR fotaRead(char *buff, int maxlen) {
 }
 
 void fotaWrite(char *reqdata) {
+	DEBUG("fotaWrite");
 	JsonGetStr(reqdata, "host", SysConfig.FotaHost, sizeof(SysConfig.FotaHost));
 	SysConfig.FotaPort = JsonGetUInt(reqdata, "port");
 	JsonGetStr(reqdata, "path", SysConfig.FotaPath, sizeof(SysConfig.FotaPath));
 	SysConfig.FotaSecure = (uint8)JsonGetUInt(reqdata, "sec");
 	JsonGetStr(reqdata, "user", SysConfig.FotaUser, sizeof(SysConfig.FotaUser));
-	JsonGetStr(reqdata, "pw", SysConfig.FotaPass, sizeof(SysConfig.FotaPass));
+	char pw[64];
+	JsonGetStr(reqdata, "pw", pw, sizeof(pw));
+	if (ets_strlen(pw) > 0)
+		JsonGetStr(reqdata, "pw", SysConfig.FotaPass, sizeof(SysConfig.FotaPass));
 	SysConfig.FotaAuto = (uint8)JsonGetUInt(reqdata, "auto");
 	sys_config_save();
 }
 
 int ICACHE_FLASH_ATTR mqttRead(char *buff, int maxlen) {
+	DEBUG("mqttRead");
 	char *buffend = buff;
 	buffend += ets_sprintf(buffend, "{\"data\":\"mqtt\",\"cmd\":\"read\"");
 	buffend += ets_sprintf(buffend, ",\"host\":\"%s\"", SysConfig.MqttHost);
@@ -218,12 +287,13 @@ int ICACHE_FLASH_ATTR mqttRead(char *buff, int maxlen) {
 	buffend += ets_sprintf(buffend, ",\"ka\":%d", SysConfig.MqttKeepAlive);
 	buffend += ets_sprintf(buffend, ",\"sec\":%d", SysConfig.MqttSecure);
 	buffend += ets_sprintf(buffend, ",\"user\":\"%s\"", SysConfig.MqttUser);
-	buffend += ets_sprintf(buffend, ",\"pw\":\"%s\"", SysConfig.MqttPass);
+//	buffend += ets_sprintf(buffend, ",\"pw\":\"%s\"", SysConfig.MqttPass);
 	buffend += ets_sprintf(buffend, "}");
 	return buffend - buff;
 }
 
 void mqttWrite(char *reqdata) {
+	DEBUG("mqttWrite");
 	bool mqttConfigChanged = false;
 	if (ets_strcmp(JsonGet(reqdata, "host"), SysConfig.MqttHost) != 0) {
 		JsonGetStr(reqdata, "host", SysConfig.MqttHost, sizeof(SysConfig.MqttHost));
@@ -245,9 +315,13 @@ void mqttWrite(char *reqdata) {
 		JsonGetStr(reqdata, "user", SysConfig.MqttUser, sizeof(SysConfig.MqttUser));
 		mqttConfigChanged = true;
 	}
-	if (ets_strcmp(JsonGet(reqdata, "pw"), SysConfig.MqttPass) != 0) {
-		JsonGetStr(reqdata, "pw", SysConfig.MqttPass, sizeof(SysConfig.MqttPass));
-		mqttConfigChanged = true;
+	char pw[64];
+	JsonGetStr(reqdata, "pw", pw, sizeof(pw));
+	if (ets_strlen(pw) > 0) {
+		if (ets_strcmp(pw, SysConfig.MqttPass) != 0) {
+			JsonGetStr(reqdata, "pw", SysConfig.MqttPass, sizeof(SysConfig.MqttPass));
+			mqttConfigChanged = true;
+		}
 	}
 	if (mqttConfigChanged) {
 		sys_config_save();
@@ -256,6 +330,7 @@ void mqttWrite(char *reqdata) {
 }
 
 int ICACHE_FLASH_ATTR hardwareRead(char *buff, int maxlen) {
+	DEBUG("hardwareRead");
 	char *buffend = buff;
 	buffend += ets_sprintf(buffend, "{\"data\":\"hardware\",\"cmd\":\"read\"");
 	buffend += ets_sprintf(buffend, ",\"type\":\"%s\"", HwConfig.Type);
@@ -269,6 +344,7 @@ int ICACHE_FLASH_ATTR hardwareRead(char *buff, int maxlen) {
 }
 
 void hardwareWrite(char *reqdata) {
+	DEBUG("hardwareWrite");
 	bool sysConfigChanged = false;
 	bool hwConfigChanged = false;
 	if (ets_strcmp(JsonGet(reqdata, "type"), HwConfig.Type) != 0) {
@@ -295,7 +371,7 @@ void hardwareWrite(char *reqdata) {
 }
 
 void ICACHE_FLASH_ATTR wifiScanCb() {
-	INFO("WifiScanCb");
+	DEBUG("WifiScanCb");
 	int retsize = 1000;
 	char buff[1000];
 	char *buffend = buff;
@@ -304,6 +380,7 @@ void ICACHE_FLASH_ATTR wifiScanCb() {
 }
 
 int ICACHE_FLASH_ATTR fullRead(char *buff, int maxlen) {
+	DEBUG("fullRead");
 	char *buffend = buff;
 	buffend += ets_sprintf(buffend, "[");
 	buffend += wifiRead(buffend, maxlen - (buffend - buff));
@@ -318,6 +395,7 @@ int ICACHE_FLASH_ATTR fullRead(char *buff, int maxlen) {
 }
 
 int ICACHE_FLASH_ATTR httpd_handle_request(char *reqdata, int reqlen, char *resdata, int reslen) {
+	DEBUG("httpd_handle_request");
 	INFO("req: %s", reqdata);
 	int retsize = reslen;
 	char *buff = resdata;
@@ -326,35 +404,33 @@ int ICACHE_FLASH_ATTR httpd_handle_request(char *reqdata, int reqlen, char *resd
 		reqdata[reqlen] = 0;
 		char *cmd = JsonGet(reqdata, "cmd") + 1;
 		char *dat = JsonGet(reqdata, "data") + 1;
-		if (ets_strcmp(dat, "full") == 0) {
-			if (ets_strcmp(cmd, "read") == 0)
+		if (ets_strstr(dat, "full") == dat) {
+			if (ets_strstr(cmd, "read") == cmd)
 				buffend += fullRead(buffend, retsize);
-		} else if (ets_strcmp(dat, "wifi") == 0) {
-			if (ets_strcmp(cmd, "write") == 0)
+		} else if (ets_strstr(dat, "wifi") == dat) {
+			if (ets_strstr(cmd, "write") == cmd)
 				wifiWrite(reqdata);
-			if (ets_strcmp(cmd, "read") == 0 || ets_strcmp(cmd, "write") == 0)
+			if (ets_strstr(cmd, "read") == cmd || ets_strstr(cmd, "write") == cmd)
 				buffend += wifiRead(buffend, retsize);
-			else if (ets_strcmp(cmd, "scan") == 0) {
+			else if (ets_strstr(cmd, "scan") == cmd) {
 				char *mode = JsonGet(reqdata, "mode") + 1;
-				if (ets_strcmp(mode, "push") == 0)
+				if (ets_strstr(mode, "push") == mode)
 					buffend += ets_sprintf(buffend, "{\"data\":\"scan\",\"cmd\":\"triggered\"}");
-				else if (ets_strcmp(mode, "pull") == 0)
+				else if (ets_strstr(mode, "pull") == mode)
 					buffend += accessPointResponse(buffend, retsize);
 				wifi_scan(wifiScanCb, true);
 			}
-		} else if (ets_strcmp(dat, "mqtt") == 0) {
-			if (ets_strcmp(cmd, "write") == 0)
+		} else if (ets_strstr(dat, "mqtt") == dat) {
+			if (ets_strstr(cmd, "write") == cmd)
 				mqttWrite(reqdata);
-			if (ets_strcmp(cmd, "read") == 0 || ets_strcmp(cmd, "write") == 0)
+			if (ets_strstr(cmd, "read") == cmd || ets_strstr(cmd, "write") == cmd)
 				buffend += mqttRead(buffend, retsize);
-		} else if (ets_strcmp(dat, "fota") == 0) {
-			if (ets_strcmp(cmd, "write") == 0)
+		} else if (ets_strstr(dat, "fota") == dat) {
+			if (ets_strstr(cmd, "write") == cmd)
 				fotaWrite(reqdata);
-			if (ets_strcmp(cmd, "read") == 0 || ets_strcmp(cmd, "write") == 0)
+			if (ets_strstr(cmd, "read") == cmd || ets_strstr(cmd, "write") == cmd) {
 				buffend += fotaRead(buffend, retsize);
-			else if (ets_strcmp(cmd, "check") == 0) {
-				// ToDo
-			} else if (ets_strcmp(cmd, "flash") == 0) {
+			} else if (ets_strstr(cmd, "flash") == cmd) {
 				bool started = false;
 				char type[20];
 				JsonGetStr(reqdata, "type", type, sizeof(type));
@@ -368,13 +444,13 @@ int ICACHE_FLASH_ATTR httpd_handle_request(char *reqdata, int reqlen, char *resd
 				buffend += ets_sprintf(buffend, started ? "started" : "failed");
 				buffend += ets_sprintf(buffend, "\"}");
 			}
-		} else if (ets_strcmp(dat, "hardware") == 0) {
-			if (ets_strcmp(cmd, "write") == 0)
+		} else if (ets_strstr(dat, "hardware") == dat) {
+			if (ets_strstr(cmd, "write") == cmd)
 				hardwareWrite(reqdata);
-			if (ets_strcmp(cmd, "read") == 0 || ets_strcmp(cmd, "write") == 0)
+			if (ets_strstr(cmd, "read") == cmd || ets_strstr(cmd, "write") == cmd)
 				buffend += hardwareRead(buffend, retsize);
-		} else if (ets_strcmp(dat, "hardware") == 0) {
-			if (ets_strcmp(cmd, "restart") == 0) {
+		} else if (ets_strstr(dat, "system") == dat) {
+			if (ets_strstr(cmd, "restart") == cmd) {
 				buffend += ets_sprintf(buffend, "{\"data\":\"system\",\"cmd\":\"restart\"}");
 				boot_reboot();
 			}

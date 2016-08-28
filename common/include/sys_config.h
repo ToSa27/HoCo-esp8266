@@ -7,7 +7,7 @@ extern "C" {
 
 #include <esp8266.h>
 
-#define DEVICE_ID_PREFIX				"HANG_"
+#define DEVICE_ID_PREFIX				"HoCo_"
 
 #define SYS_CONFIG_SECTOR				0x301
 #define SYS_CONFIG_MAGIC				0x2334ae68

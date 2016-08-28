@@ -28,36 +28,6 @@ void ICACHE_FLASH_ATTR user_fota_cb(FotaResult result, uint8 rom_slot) {
 		INFO("ROM is up-to-date.");
 }
 
-// topic: "/hoco/{subtopic}"
-// qos: 0
-void ICACHE_FLASH_ATTR user_mqtt_subscribe_broadcast(char *subtopic) {
-	DEBUG("user_mqtt_subscribe_broadcast");
-	char topic[35];
-	ets_memset(topic, 0, sizeof(topic));
-	ets_sprintf(topic, "/hoco/%s", subtopic);
-	mqtt_subscribe(topic);
-}
-
-// topic: "/hoco/{DeviceId}/{subtopic}"
-// qos: 0
-void ICACHE_FLASH_ATTR user_mqtt_subscribe(char *subtopic) {
-	DEBUG("user_mqtt_subscribe");
-	char topic[35];
-	ets_memset(topic, 0, sizeof(topic));
-	ets_sprintf(topic, "/hoco/%s/%s", SysConfig.DeviceId, subtopic);
-	mqtt_subscribe(topic);
-}
-
-// topic: "/hoco/{DeviceId}/{subtopic}"
-// qos: 0
-void ICACHE_FLASH_ATTR user_mqtt_publish(char *subtopic, char *data, bool retain) {
-	DEBUG("user_mqtt_publish");
-	char topic[35];
-	ets_memset(topic, 0, sizeof(topic));
-	ets_sprintf(topic, "/hoco/%s/%s", SysConfig.DeviceId, subtopic);
-	mqtt_publish(topic, data, retain);
-}
-
 void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 	DEBUG("user_mqtt_receive_cb");
 	char *subtopicBuf = topic;
@@ -75,13 +45,15 @@ void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 						else
 							boot_reboot();
 					} else if (ets_strstr(subtopicBuf, "fota") == subtopicBuf) {
-						char type[20];
+						char type[12];
 						JsonGetStr(data, "type", type, sizeof(type));
 						if (type[0] != 0) {
-							uint8 major = (uint8)JsonGetUInt(data, "major");
-							uint8 minor = (uint8)JsonGetUInt(data, "minor");
-							uint16 build = (uint16)JsonGetUInt(data, "build");
-							fota_start(type, major, minor, build);
+							if (ets_strstr(type, "none") != type) {
+								uint8 major = (uint8)JsonGetUInt(data, "major");
+								uint8 minor = (uint8)JsonGetUInt(data, "minor");
+								uint16 build = (uint16)JsonGetUInt(data, "build");
+								fota_start(type, major, minor, build);
+							}
 						}
 					} else if (ets_strstr(subtopicBuf, "config/$set") == subtopicBuf) {
 						ets_memset(HwConfig.Conf, 0, sizeof(HwConfig.Conf));
@@ -93,57 +65,24 @@ void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 	}
 }
 
-void ICACHE_FLASH_ATTR user_mqtt_fota_check(bool force) {
-	DEBUG("user_mqtt_fota_check");
-	if (!SysConfig.FotaAuto && !force)
-		return;
-	int maxlen = 500;
-	char buff[500];
-	char *buffend = buff;
-	buffend += boot_sys_info(true, true, buffend, maxlen - (buffend - buff));
-	buffend[0] = 0;
-	user_mqtt_publish("$fota/check", buff, false);
-}
-
 void ICACHE_FLASH_ATTR user_mqtt_state_cb(MqttState state) {
 	DEBUG("user_mqtt_state_cb");
 	if (state == MQTT_DISCONNECTED) {
 		mqtt_connect();
 	} else if (state == MQTT_CONNECTED) {
-		user_mqtt_subscribe("$reset");
-		user_mqtt_subscribe("$fota");
-		user_mqtt_publish("$name", SysConfig.DeviceName, true);
-		user_mqtt_publish("$hwtype", HwConfig.Type, true);
-		char data[32];
-		ets_memset(data, 0, sizeof(data));
-		ets_sprintf(data, "%d", HwConfig.Rev);
-		user_mqtt_publish("$hwrev", data, true);
-		user_mqtt_publish("$fwtype", ROM_TYPE, true);
-		ets_memset(data, 0, sizeof(data));
-		ets_sprintf(data, "%d.%d-%d", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD);
-		user_mqtt_publish("$fwver", data, true);
-		ets_memset(data, 0, sizeof(data));
-		struct ip_info ipi;
-		wifi_get_ip_info(STATION_IF, &ipi);
-		ets_sprintf(data, IPSTR, IP2STR(&ipi.ip));
-		user_mqtt_publish("$ip", data, true);
-		ets_memset(data, 0, sizeof(data));
-		ets_sprintf(data, "%d", wifi_station_get_rssi());
-		user_mqtt_publish("$signal", data, true);
-		user_mqtt_publish("$online", "true", true);
-		user_mqtt_fota_check(false);
+		mqtt_announce();
+		mqtt_fota_check(false);
+		mqtt_publish("$online", "true", true);
 	}
 }
 
-void ICACHE_FLASH_ATTR user_wifi_cb(uint8 mode, bool connected) {
-	DEBUG("user_wifi_cb");
-	INFO("WiFi mode: %d / connected: %d", mode, connected ? 1 : 0);
-	if (connected) {
-		mqtt_connect();
-	} else {
-		mqtt_disconnect();
+void ICACHE_FLASH_ATTR user_wifi_state_cb(uint8 mode, WifiStState state) {
+	DEBUG("user_wifi_state_cb");
+	INFO("WiFi mode: %d / state: %d", mode, state);
+	if (state == WIFI_ST_DISCONNECTED)
 		wifi_reinit(STATIONAP_MODE, false);
-	}
+	else if (state == WIFI_ST_CONNECTED)
+		mqtt_connect();
 }
 
 void ICACHE_FLASH_ATTR user_rf_pre_init() {
@@ -163,7 +102,7 @@ void ICACHE_FLASH_ATTR user_init_done_cb() {
 	ets_sprintf(topic, "/hoco/%s/$online", SysConfig.DeviceId);
 	mqtt_init(user_mqtt_state_cb, topic, (char *)"false", user_mqtt_receive_cb);
 	httpd_init(true);
-	wifi_init(STATION_MODE, false, user_wifi_cb);
+	wifi_init(STATION_MODE, false, user_wifi_state_cb);
 }
 
 void ICACHE_FLASH_ATTR user_init(void) {
