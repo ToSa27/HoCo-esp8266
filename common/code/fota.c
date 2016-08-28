@@ -183,7 +183,7 @@ static void ICACHE_FLASH_ATTR fota_connect_cb(void *arg) {
 	}
 	DEBUG("filename: %s", upgrade->filename);
 	os_sprintf((char*)request,
-		"GET %s/%s HTTP/1.1\r\nHost: %s\r\nConnection: keep-alive\r\nCache-Control: no-cache\r\nUser-Agent: HANG-config/1.0\r\nAccept: */*%s\r\n\r\n",
+		"GET %s/%s HTTP/1.1\r\nHost: %s\r\nConnection: keep-alive\r\nCache-Control: no-cache\r\nUser-Agent: HoCo-config/1.0\r\nAccept: */*%s\r\n\r\n",
 		SysConfig.FotaPath,
 		upgrade->filename,
 		SysConfig.FotaHost,

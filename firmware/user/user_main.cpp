@@ -1,6 +1,6 @@
 #include <user_cpp.h>
 #include <TimeLib.h>
-#include <HangBase.h>
+#include <HoCoBase.h>
 
 extern "C" {
 
@@ -74,7 +74,7 @@ void ICACHE_FLASH_ATTR user_mqtt_state_cb(MqttState state) {
 		mqtt_fota_check(false);
 		// will be done in HoCo class instead
 		//mqtt_publish("$online", "true", true);
-		Hang::Start();
+		HoCo::Start();
 	}
 }
 
@@ -102,7 +102,7 @@ void ICACHE_FLASH_ATTR user_init_done_cb() {
 	ets_memset(topic, 0, sizeof(topic));
 	ets_sprintf(topic, "/hoco/%s/$online", SysConfig.DeviceId);
 	mqtt_init(user_mqtt_state_cb, topic, (char *)"false", user_mqtt_receive_cb);
-	Hang::Init(HwConfig.Conf, mqtt_subscribe, mqtt_publish);
+	HoCo::Init(HwConfig.Conf, mqtt_subscribe, mqtt_publish);
 	wifi_init(STATION_MODE, false, user_wifi_state_cb);
 }
 

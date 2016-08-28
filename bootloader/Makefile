@@ -1,4 +1,4 @@
-# HANG bootloader makefile
+# HoCo bootloader makefile
 # Tobias Hoff
 
 include ../config.mk

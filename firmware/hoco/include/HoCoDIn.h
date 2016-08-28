@@ -1,9 +1,9 @@
 #pragma once
 
-#include <HangDevice.h>
 #include <esp8266.h>
+#include <HoCoDevice.h>
 
-class HangDInClass : public HangDeviceClass {
+class HoCoDInClass : public HoCoDeviceClass {
 private:
 	uint8_t _Pin;
 	uint8_t _LastState;
@@ -19,8 +19,8 @@ protected:
 	void SendConfig();
 	void ReceivedSub(char *Topic, char *Data);
 public:
-	HangDInClass(char *Name, char *Config, publish_callback publish);
-	~HangDInClass();
+	HoCoDInClass(char *Name, char *Config, publish_callback publish);
+	~HoCoDInClass();
 	void Start();
 	void Stop();
 	void SendStatus();

@@ -1,5 +1,5 @@
-#ifndef __HANG_COMMON_CJSON_H__
-#define __HANG_COMMON_CJSON_H__
+#ifndef __HOCO_CJSON_H__
+#define __HOCO_CJSON_H__
 
 #ifdef __cplusplus
 extern "C" {

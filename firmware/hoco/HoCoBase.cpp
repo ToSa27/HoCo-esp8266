@@ -1,27 +1,27 @@
-#include <HangBase.h>
-
-#include <HangDevice.h>
-#include <HangDOut.h>
-#include <HangDIn.h>
+#include <HoCoBase.h>
 
 #include <CppJson.h>
 #include <debug.h>
+#include <HoCoDevice.h>
+#include <HoCoDevice.h>
+#include <HoCoDIn.h>
+#include <HoCoDOut.h>
 
-bool Hang::isInitialized = false;
-char *Hang::NodeId;
-Vector<HangDeviceClass*> Hang::Devices;
-subscribe_callback Hang::SubscribeCb = NULL;
-publish_callback Hang::PublishCb = NULL;
+bool HoCo::isInitialized = false;
+char *HoCo::NodeId;
+Vector<HoCoDeviceClass*> HoCo::Devices;
+subscribe_callback HoCo::SubscribeCb = NULL;
+publish_callback HoCo::PublishCb = NULL;
 
-Hang::~Hang() {
+HoCo::~HoCo() {
 	Devices.clear();
 	delete(NodeId);
 }
 
 // config json format:
 // {"n":"...","d":[{...},{...},{...}]}
-void ICACHE_FLASH_ATTR Hang::Init(char *config, subscribe_callback subscribe, publish_callback publish) {
-	DEBUG("Hang::Init");
+void ICACHE_FLASH_ATTR HoCo::Init(char *config, subscribe_callback subscribe, publish_callback publish) {
+	DEBUG("HoCo::Init");
 	DEBUG("config: %s", config);
 	if (!isInitialized) {
 		SubscribeCb = subscribe;
@@ -31,14 +31,14 @@ void ICACHE_FLASH_ATTR Hang::Init(char *config, subscribe_callback subscribe, pu
 		ets_memcpy(NodeId, n, ets_strlen(n));
 		NodeId[ets_strlen(n)] = '\0';
 		delete(n);
-		DEBUG("Hang::NodeId: %s", NodeId);
+		DEBUG("HoCo::NodeId: %s", NodeId);
 		char *d = CppJson::jsonGet(config, "d");
-		DEBUG("Hang::Devices: %s", d);
+		DEBUG("HoCo::Devices: %s", d);
 		char *di;
 		char *pos = CppJson::jsonGetArrayFirst(d, di);
-		DEBUG("Hang::FirstDevice: %s", di);
+		DEBUG("HoCo::FirstDevice: %s", di);
 		while (di != NULL) {
-			DEBUG("Hang::Device: %s", di);
+			DEBUG("HoCo::Device: %s", di);
 			InitDevice(di);
 			delete(di);
 			pos = CppJson::jsonGetArrayNext(pos, di);
@@ -52,17 +52,17 @@ void ICACHE_FLASH_ATTR Hang::Init(char *config, subscribe_callback subscribe, pu
 
 // config json format:
 // {"t":"...","n":"...","c":{...}}
-void ICACHE_FLASH_ATTR Hang::InitDevice(char *config) {
-	DEBUG("Hang::InitDevice");
-	DEBUG("Hang::InitDevice-config: %s", config);
+void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
+	DEBUG("HoCo::InitDevice");
+	DEBUG("HoCo::InitDevice-config: %s", config);
 	char *t = CppJson::jsonGetString(config, "t");
 	char *n = CppJson::jsonGetString(config, "n");
 	char *c = CppJson::jsonGet(config, "c");
-	DEBUG("Hang::InitDevice - Type: %s / Name: %s", t, n);
+	DEBUG("HoCo::InitDevice - Type: %s / Name: %s", t, n);
 	if (ets_strstr(t, "DOut") == t)
-		Devices.add(new HangDOutClass(n, c, PublishCb));
+		Devices.add(new HoCoDOutClass(n, c, PublishCb));
 	else if (ets_strstr(t, "DIn") == t)
-		Devices.add(new HangDInClass(n, c, PublishCb));
+		Devices.add(new HoCoDInClass(n, c, PublishCb));
 //	else if (ets_strstr(t, "DS1820") == t)
 //		Devices.add(new HangDS1820Class(n, c, Publish));
 //	else if (ets_strstr(t, "Oled") == t)
@@ -84,8 +84,8 @@ void ICACHE_FLASH_ATTR Hang::InitDevice(char *config) {
 }
 
 /*
-bool ICACHE_FLASH_ATTR Hang::HandleMessage(char *topic, char *data) {
-	DEBUG("Hang::HandleMessage");
+bool ICACHE_FLASH_ATTR HoCo::HandleMessage(char *topic, char *data) {
+	DEBUG("HoCo::HandleMessage");
 	char *tp = topic;
 	if (ets_strstr(tp, "broadcast/") == tp) {
 		tp += 10;
@@ -103,7 +103,7 @@ bool ICACHE_FLASH_ATTR Hang::HandleMessage(char *topic, char *data) {
 	return false;
 }
 
-bool ICACHE_FLASH_ATTR Hang::HandleNodeMessage(char *tp, char *data) {
+bool ICACHE_FLASH_ATTR HoCo::HandleNodeMessage(char *tp, char *data) {
 	if (os_strstr(tp, "reboot") == tp) {
 		Publish((char*)"", (char*)"connection", (char*)"reboot");
 		debugf("rebooting");
@@ -129,7 +129,7 @@ bool ICACHE_FLASH_ATTR Hang::HandleNodeMessage(char *tp, char *data) {
 }
 */
 
-bool ICACHE_FLASH_ATTR Hang::HandleDeviceMessage(char *tp, char *data) {
+bool ICACHE_FLASH_ATTR HoCo::HandleDeviceMessage(char *tp, char *data) {
 	for (uint8_t i = 0; i < Devices.count(); i++) {
 		if (ets_strstr(tp, Devices[i]->DeviceId) == tp) {
 			char *tp2 = tp + ets_strlen(Devices[i]->DeviceId);
@@ -142,8 +142,8 @@ bool ICACHE_FLASH_ATTR Hang::HandleDeviceMessage(char *tp, char *data) {
 	}
 }
 
-void ICACHE_FLASH_ATTR Hang::Start() {
-	DEBUG("HangStart");
+void ICACHE_FLASH_ATTR HoCo::Start() {
+	DEBUG("HoCo::Start");
 	char nt[100];
 //	ets_sprintf(nt, "/hang/%s/to/#", NodeId);
 //	SubscribeCb(mqttClient, (char*)nt, 0);
@@ -152,13 +152,13 @@ void ICACHE_FLASH_ATTR Hang::Start() {
 //	PublishStatus();
 }
 
-void ICACHE_FLASH_ATTR Hang::Stop() {
-	DEBUG("HangStop");
+void ICACHE_FLASH_ATTR HoCo::Stop() {
+	DEBUG("HoCo::Stop");
 	for (uint8_t i = 0; i < Devices.count(); i++)
 		Devices[i]->Stop();
 }
 
-HangDeviceClass* ICACHE_FLASH_ATTR Hang::DeviceByName(char *name) {
+HoCoDeviceClass* ICACHE_FLASH_ATTR HoCo::DeviceByName(char *name) {
 	for (uint8_t i = 0; i < Devices.count(); i++)
 		if (ets_strstr(name, Devices[i]->DeviceId) == name)
 			return Devices[i];

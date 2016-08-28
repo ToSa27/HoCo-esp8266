@@ -18,12 +18,12 @@ MODULES					= user
 LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl
 COMMONS					= boot sys_config hw_config wifi mqttc cjson tick pin
 COMMONMODULES			= TimeLib CppJson
-HANGDEVICES				= DIn DOut
+HOCODEVICES				= DIn DOut
 
 # build and firmware locations
 BUILD_BASE				= build
 BUILD_DIRS				:= $(addprefix $(BUILD_BASE)/,$(MODULES))
-BUILD_DIRS				+= $(BUILD_BASE)/hang
+BUILD_DIRS				+= $(BUILD_BASE)/hoco
 BUILD_DIRS_COMMON		:= $(addprefix $(BUILD_BASE)/,$(COMMONMODULES))
 FIRMWARE_BASE			= firmware
 
@@ -39,17 +39,17 @@ MQTT					= mqtt
 MQTT_DIR				= ../libs/esp_mqtt
 MQTT_LIB_SRC			= $(addprefix $(MQTT_DIR)/lib,$(MQTT).a)
 MQTT_LIB				= $(addprefix $(BUILD_BASE)/lib,$(MQTT).a)
-HANG					= hang
-HANG_LIB				= $(addprefix $(BUILD_BASE)/lib,$(HANG).a)
-HANG_SRC				= Base Device
-HANG_SRC				+= $(HANGDEVICES)
-HANG_SRC				:= $(addprefix $(HANG)/Hang,$(HANG_SRC))
-HANG_SRC				:= $(addsuffix .cpp,$(HANG_SRC))
-HANG_OBJ				= $(patsubst %.cpp,$(BUILD_BASE)/%.o,$(HANG_SRC))
+HOCO					= hoco
+HOCO_LIB				= $(addprefix $(BUILD_BASE)/lib,$(HOCO).a)
+HOCO_SRC				= Base Device
+HOCO_SRC				+= $(HOCODEVICES)
+HOCO_SRC				:= $(addprefix $(HOCO)/HoCo,$(HOCO_SRC))
+HOCO_SRC				:= $(addsuffix .cpp,$(HOCO_SRC))
+HOCO_OBJ				= $(patsubst %.cpp,$(BUILD_BASE)/%.o,$(HOCO_SRC))
 LIBS					+= $(MAIN)
 LIBS					+= $(MQTT)
 LIBS					+= $(TARGET)
-LIBS					+= $(HANG)
+LIBS					+= $(HOCO)
 SRC						:= $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.c))
 OBJ						= $(patsubst %.c,$(BUILD_BASE)/%.o,$(SRC))
 SRCPP					:= $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cpp))
@@ -71,7 +71,7 @@ DEFINES					+= FIRMWARE
 DEFINES					+= VERSION_MAJOR=$(VERSION_MAJOR)
 DEFINES					+= VERSION_MINOR=$(VERSION_MINOR)
 DEFINES					+= VERSION_BUILD=$(VERSION_BUILD)
-DEFINES					+= HANG_VERBOSITY=5
+DEFINES					+= HOCO_VERBOSITY=5
 DEFINES					+= SECTOR_CONFIG_BOOT=$(SECTOR_CONFIG_BOOT)
 DEFINES					+= SECTOR_CONFIG_SDK=$(SECTOR_CONFIG_SDK)
 DEFINES					+= SECTOR_CONFIG_SDK_CALI=$(SECTOR_CONFIG_SDK_CALI)
@@ -82,7 +82,7 @@ DEFINES					+= RTCADDR_BOOT=$(RTCADDR_BOOT)
 INCDIRS					= ../common/include
 INCDIRS					+= $(addsuffix /include,$(MODULES))
 INCDIRS					+= $(addprefix ../common/modules/,$(COMMONMODULES))
-INCDIRS					+= $(addsuffix /include,$(HANG))
+INCDIRS					+= $(addsuffix /include,$(HOCO))
 INCDIRS					+= $(SDK_BASE)/include
 INCDIRS					+= ../bootloader/include
 INCDIRS					+= $(MQTT_DIR)/mqtt/include
@@ -108,8 +108,8 @@ CFLAGS					= $(COMMONFLAGS) -std=gnu99
 CPPFLAGS				= $(COMMONFLAGS) -std=c++98 -fno-rtti -fno-exceptions
 LDFLAGS					= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 
-vpath %.c $(MODULES) $(HANG)
-vpath %.cpp $(MODULES) $(HANG)
+vpath %.c $(MODULES) $(HOCO)
+vpath %.cpp $(MODULES) $(HOCO)
 define compile-modules
 $1/%.o: %.c
 	$(CC) $(INCDIRS) $(CFLAGS) $(DEFINES) -c $$< -o $$@
@@ -174,17 +174,17 @@ $(MQTT_LIB_SRC):
 $(MQTT_LIB): $(MQTT_LIB_SRC)
 	mv $(MQTT_LIB_SRC) $(MQTT_LIB)
 
-$(HANG_LIB): $(HANG_OBJ)
-	@echo HANG_OBJ:
-	@echo $(HANG_OBJ)
-	$(AR) cru $@ $(HANG_OBJ)
+$(HOCO_LIB): $(HOCO_OBJ)
+	@echo HOCO_OBJ:
+	@echo $(HOCO_OBJ)
+	$(AR) cru $@ $(HOCO_OBJ)
 
 $(TARGET_LIB): $(OBJ)
 	@echo OBJ:
 	@echo $(OBJ)
 	$(AR) cru $@ $(OBJ)
 
-$(TARGET_ELF): $(MAIN_LIB) $(MQTT_LIB) $(HANG_LIB) $(TARGET_LIB)
+$(TARGET_ELF): $(MAIN_LIB) $(MQTT_LIB) $(HOCO_LIB) $(TARGET_LIB)
 	$(LD) $(LDDIRS) $(LIBDIRS) $(LDSCRIPTS) $(LDFLAGS) -Wl,--start-group $(LIBS) -Wl,--end-group -o $@
 
 $(TARGET_BIN): $(TARGET_ELF)

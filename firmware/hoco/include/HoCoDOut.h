@@ -1,9 +1,9 @@
 #pragma once
 
 #include <esp8266.h>
-#include <HangDevice.h>
+#include <HoCoDevice.h>
 
-class HangDOutClass : public HangDeviceClass {
+class HoCoDOutClass : public HoCoDeviceClass {
 private:
 	bool _Inverted;
 	uint8_t _Pin;
@@ -15,8 +15,8 @@ protected:
 	void SendConfig();
 	void ReceivedSub(char *Topic, char *Data);
 public:
-	HangDOutClass(char *Name, char *Config, publish_callback publish);
-	~HangDOutClass();
+	HoCoDOutClass(char *Name, char *Config, publish_callback publish);
+	~HoCoDOutClass();
 	void Start();
 	void Stop();
 	void SendStatus();

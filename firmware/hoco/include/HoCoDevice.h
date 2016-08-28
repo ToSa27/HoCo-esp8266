@@ -1,9 +1,9 @@
 #pragma once
 
 #include <esp8266.h>
-#include <Hang.h>
+#include <HoCo.h>
 
-class HangDeviceClass {
+class HoCoDeviceClass {
 private:
 	publish_callback _PublishCallback;
 protected:
@@ -13,8 +13,8 @@ protected:
 	virtual void SendConfig() = 0;
 	virtual void ReceivedSub(char *Topic, char *Data) = 0;
 public:
-	HangDeviceClass(char *Name, publish_callback publish);
-	virtual ~HangDeviceClass();
+	HoCoDeviceClass(char *Name, publish_callback publish);
+	virtual ~HoCoDeviceClass();
 	virtual void Start() = 0;
 	virtual void Stop() = 0;
 	virtual void SendStatus() = 0;
