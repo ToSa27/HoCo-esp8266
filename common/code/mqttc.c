@@ -50,7 +50,8 @@ void ICACHE_FLASH_ATTR mqtt_data(uint32_t *args, const char* topic, uint32_t top
 	topicBuf[topic_len] = 0;
 	os_memcpy(dataBuf, data, data_len);
 	dataBuf[data_len] = 0;
-	INFO("MQTT: Received topic: %s, data: %s \r\n", topicBuf, dataBuf);
+	DEBUG("  t: %s", topicBuf);
+	DEBUG("  d: %s", dataBuf);
 	if (receive_callback)
 		receive_callback(topicBuf, dataBuf);
 	os_free(topicBuf);
@@ -98,6 +99,7 @@ void ICACHE_FLASH_ATTR mqtt_announce() {
 	DEBUG("mqtt_announce");
 	mqtt_subscribe("$reset");
 	mqtt_subscribe("$fota");
+	mqtt_subscribe("$config/$set");
 	mqtt_publish("$name", SysConfig.DeviceName, true);
 	mqtt_publish("$hwtype", HwConfig.Type, true);
 	char data[32];
@@ -137,6 +139,7 @@ void ICACHE_FLASH_ATTR mqtt_subscribe_broadcast(char *subtopic) {
 	char topic[35];
 	ets_memset(topic, 0, sizeof(topic));
 	ets_sprintf(topic, "/hoco/%s", subtopic);
+	DEBUG("  t: %s", topic);
 	MQTT_Subscribe(&mqtt_client, topic, 0);
 }
 
@@ -147,6 +150,7 @@ void ICACHE_FLASH_ATTR mqtt_subscribe(char *subtopic) {
 	char topic[35];
 	ets_memset(topic, 0, sizeof(topic));
 	ets_sprintf(topic, "/hoco/%s/%s", SysConfig.DeviceId, subtopic);
+	DEBUG("  t: %s", topic);
 	MQTT_Subscribe(&mqtt_client, topic, 0);
 }
 
@@ -157,5 +161,7 @@ void ICACHE_FLASH_ATTR mqtt_publish(char *subtopic, char *data, bool retain) {
 	char topic[35];
 	ets_memset(topic, 0, sizeof(topic));
 	ets_sprintf(topic, "/hoco/%s/%s", SysConfig.DeviceId, subtopic);
+	DEBUG("  t: %s", topic);
+	DEBUG("  d: %s", data);
 	MQTT_Publish(&mqtt_client, topic, data, os_strlen(data), 0, retain ? 1 : 0);
 }

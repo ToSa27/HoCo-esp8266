@@ -7,8 +7,8 @@ extern "C" {
 
 #include <esp8266.h>
 
-extern unsigned long millis();
-unsigned long micros();
+extern unsigned long mymillis();
+unsigned long mymicros();
 
 void delay(uint32_t ms);
 #define delayMilliseconds(ms) delay(ms)

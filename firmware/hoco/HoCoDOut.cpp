@@ -4,8 +4,9 @@
 #include <debug.h>
 #include <pin.h>
 
-HoCoDOutClass::HoCoDOutClass(char *Name, char *Config, publish_callback publish) : HoCoDeviceClass(Name, publish) {
+HoCoDOutClass::HoCoDOutClass(char *Name, char *Config, subscribe_callback subscribe, publish_callback publish) : HoCoDeviceClass(Name, subscribe, publish) {
 	SetConfig(Config);
+	Subscribe((char*)"on/$set");
 }
 
 HoCoDOutClass::~HoCoDOutClass() {
@@ -26,21 +27,23 @@ void ICACHE_FLASH_ATTR HoCoDOutClass::Set(uint8_t Value) {
 	}
 }
 
-void ICACHE_FLASH_ATTR HoCoDOutClass::SetStatus(char *Status) {
-	DEBUG("HoCoDOutClass::SetStatus %s", Status);
-	uint8_t v = CppJson::jsonGetInt(Status, "out");
-	Set(v);
-}
+//void ICACHE_FLASH_ATTR HoCoDOutClass::SetStatus(char *Status) {
+//	DEBUG("HoCoDOutClass::SetStatus %s", Status);
+//	uint8_t v = CppJson::jsonGetInt(Status, "out");
+//	Set(v);
+//}
 
 void ICACHE_FLASH_ATTR HoCoDOutClass::SendStatus() {
 	char jt[10];
-	ets_sprintf(jt, "{\"out\":%d}", Get());
-	OnPublish((char*)"status", jt);
+//	ets_sprintf(jt, "{\"out\":%d}", Get());
+//	OnPublish((char*)"status", jt);
+	ets_sprintf(jt, "%d", Get());
+	Publish((char*)"on", jt, true);
 }
 
-char ICACHE_FLASH_ATTR *HoCoDOutClass::DeviceType() {
-	return (char *)"DOut";
-}
+//char ICACHE_FLASH_ATTR *HoCoDOutClass::DeviceType() {
+//	return (char *)"DOut";
+//}
 
 void ICACHE_FLASH_ATTR HoCoDOutClass::SetConfig(char *Config) {
 	DEBUG("HoCoDOutClass::SetConfig %s", Config);
@@ -51,18 +54,22 @@ void ICACHE_FLASH_ATTR HoCoDOutClass::SetConfig(char *Config) {
 	pinMode(_Pin, OUTPUT);
 }
 
-void ICACHE_FLASH_ATTR HoCoDOutClass::SendConfig() {
-	char jt[50];
-	ets_sprintf(jt, "{\"pin\":%d,\"inv\":%d}", _Pin, _Inverted);
-	OnPublish((char*)"status", jt);
-}
+//void ICACHE_FLASH_ATTR HoCoDOutClass::SendConfig() {
+//	char jt[50];
+//	ets_sprintf(jt, "{\"pin\":%d,\"inv\":%d}", _Pin, _Inverted);
+//	OnPublish((char*)"status", jt);
+//}
 
 void ICACHE_FLASH_ATTR HoCoDOutClass::Start() {
+	DEBUG("HoCoDOutClass::Start");
 }
 
 void ICACHE_FLASH_ATTR HoCoDOutClass::Stop() {
+	DEBUG("HoCoDOutClass::Stop");
 }
 
-void ICACHE_FLASH_ATTR HoCoDOutClass::ReceivedSub(char *Topic, char *Data) {
-	DEBUG("HoCoDOutClass::ReceivedSub");
+void ICACHE_FLASH_ATTR HoCoDOutClass::HandlePropertyMessage(char *Topic, char *Data) {
+	DEBUG("HoCoDOutClass::HandlePropertyMessage");
+	if (ets_strstr(Topic, "on/$set"))
+		Set(atoi(Data));
 }

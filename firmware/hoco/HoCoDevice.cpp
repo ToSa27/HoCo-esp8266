@@ -2,34 +2,37 @@
 
 #include <debug.h>
 
-HoCoDeviceClass::HoCoDeviceClass(char *Name, publish_callback publish) {
+HoCoDeviceClass::HoCoDeviceClass(char *Name, subscribe_callback subscribe, publish_callback publish) {
 	DeviceId = new char[ets_strlen(Name) + 1];
 	ets_memcpy(DeviceId, Name, ets_strlen(Name));
 	DeviceId[ets_strlen(Name)] = '\0';
+	_SubscribeCallback = subscribe;
 	_PublishCallback = publish;
+	Subscribe((char*)"$config/$set");
 }
 
 HoCoDeviceClass::~HoCoDeviceClass() {
 	delete(DeviceId);
 }
 
-void ICACHE_FLASH_ATTR HoCoDeviceClass::OnPublish(char *Topic, char *Data) {
-	DEBUG("OnPublish: %s = %s", Topic, Data);
-	// ToDo : build (sub)topic based on DeviceId and Topic?
-	if (_PublishCallback)
-		_PublishCallback(Topic, Data, true);
+void ICACHE_FLASH_ATTR HoCoDeviceClass::HandleDeviceMessage(char *Topic, char *Data) {
+	DEBUG("HoCoDOutClass::HandleDeviceMessage");
+	if (ets_strstr(Topic, "$config/$set"))
+		SetConfig(Data);
+	else
+		HandlePropertyMessage(Topic, Data);
 }
 
-void ICACHE_FLASH_ATTR HoCoDeviceClass::Received(char *Topic, char *Data) {
-	DEBUG("HoCoDeviceClass::Received");
-	if (ets_strstr(Topic, "get") == Topic)
-		SendStatus();
-	else if (ets_strstr(Topic, "set") == Topic) {
-		SetStatus(Data);
-	} else if (ets_strstr(Topic, "getConfig") == Topic)
-		SendConfig();
-	else if (ets_strstr(Topic, "setConfig") == Topic) {
-		SetConfig(Data);
-	} else
-		ReceivedSub(Topic, Data);
+void ICACHE_FLASH_ATTR HoCoDeviceClass::Subscribe(char *Topic) {
+	char *t = new char[ets_strlen(DeviceId) + ets_strlen(Topic) + 2];
+	ets_sprintf(t, "%s/%s", DeviceId, Topic);
+	if (_SubscribeCallback)
+		_SubscribeCallback(t);
+}
+
+void ICACHE_FLASH_ATTR HoCoDeviceClass::Publish(char *Topic, char *Data, bool Retain) {
+	char *t = new char[ets_strlen(DeviceId) + ets_strlen(Topic) + 2];
+	ets_sprintf(t, "%s/%s", DeviceId, Topic);
+	if (_PublishCallback)
+		_PublishCallback(t, Data, Retain);
 }

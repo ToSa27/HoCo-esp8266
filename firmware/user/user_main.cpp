@@ -55,12 +55,15 @@ void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 					} else if (ets_strstr(subtopicBuf, "config/$set") == subtopicBuf) {
 						ets_memset(HwConfig.Conf, 0, sizeof(HwConfig.Conf));
 						ets_strcpy(HwConfig.Conf, data);
+						hw_config_save();
+						boot_reboot();
+					} else {
+						HoCo::HandleNodeMessage(subtopicBuf - 1, data);
 					}
 				} else {
-
+					HoCo::HandleDeviceMessage(subtopicBuf, data);
 				}
 			}
-			// ToDo : handle further hoco topics
 		}
 	}
 }
@@ -68,13 +71,14 @@ void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 void ICACHE_FLASH_ATTR user_mqtt_state_cb(MqttState state) {
 	DEBUG("user_mqtt_state_cb");
 	if (state == MQTT_DISCONNECTED) {
+		HoCo::SetConnected(false);
 		mqtt_connect();
 	} else if (state == MQTT_CONNECTED) {
 		mqtt_announce();
 		mqtt_fota_check(false);
 		// will be done in HoCo class instead
 		//mqtt_publish("$online", "true", true);
-		HoCo::Start();
+		HoCo::SetConnected(true);
 	}
 }
 

@@ -221,7 +221,7 @@ time_t sysUnsyncedTime = 0; // the time sysTime unadjusted by sync
 
 time_t now() {
 	// calculate number of seconds passed since last call to now()
-  while (millis() - prevMillis >= 1000) {
+  while (mymillis() - prevMillis >= 1000) {
 		// millis() and prevMillis are both unsigned ints thus the subtraction will always be the absolute value of the difference
     sysTime++;
     prevMillis += 1000;
@@ -252,7 +252,7 @@ void setTime(time_t t) {
   sysTime = (uint32_t)t;
   nextSyncTime = (uint32_t)t + syncInterval;
   Status = timeSet;
-  prevMillis = millis();  // restart counting from now (thanks to Korman for this fix)
+  prevMillis = mymillis();  // restart counting from now (thanks to Korman for this fix)
 }
 
 void setLocalOffset(int32 o) {

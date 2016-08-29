@@ -3,19 +3,17 @@
 #include <CppJson.h>
 #include <debug.h>
 #include <HoCoDevice.h>
-#include <HoCoDevice.h>
 #include <HoCoDIn.h>
 #include <HoCoDOut.h>
 
 bool HoCo::isInitialized = false;
-char *HoCo::NodeId;
+bool HoCo::isConnected = false;
 Vector<HoCoDeviceClass*> HoCo::Devices;
 subscribe_callback HoCo::SubscribeCb = NULL;
 publish_callback HoCo::PublishCb = NULL;
 
 HoCo::~HoCo() {
 	Devices.clear();
-	delete(NodeId);
 }
 
 // config json format:
@@ -23,15 +21,10 @@ HoCo::~HoCo() {
 void ICACHE_FLASH_ATTR HoCo::Init(char *config, subscribe_callback subscribe, publish_callback publish) {
 	DEBUG("HoCo::Init");
 	DEBUG("config: %s", config);
-	if (!isInitialized) {
-		SubscribeCb = subscribe;
-		PublishCb = publish;
-		char *n = CppJson::jsonGetString(config, "n");
-		NodeId = new char[ets_strlen(n) + 1];
-		ets_memcpy(NodeId, n, ets_strlen(n));
-		NodeId[ets_strlen(n)] = '\0';
-		delete(n);
-		DEBUG("HoCo::NodeId: %s", NodeId);
+	SubscribeCb = subscribe;
+	PublishCb = publish;
+	if (ets_strlen(config) > 0)
+	{
 		char *d = CppJson::jsonGet(config, "d");
 		DEBUG("HoCo::Devices: %s", d);
 		char *di;
@@ -45,7 +38,7 @@ void ICACHE_FLASH_ATTR HoCo::Init(char *config, subscribe_callback subscribe, pu
 		}
 		delete(d);
 		DEBUG("DeviceCount: %d", Devices.count());
-//		HangScheduler::Init();
+	//	HangScheduler::Init();
 		isInitialized = true;
 	}
 }
@@ -60,9 +53,9 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 	char *c = CppJson::jsonGet(config, "c");
 	DEBUG("HoCo::InitDevice - Type: %s / Name: %s", t, n);
 	if (ets_strstr(t, "DOut") == t)
-		Devices.add(new HoCoDOutClass(n, c, PublishCb));
+		Devices.add(new HoCoDOutClass(n, c, SubscribeCb, PublishCb));
 	else if (ets_strstr(t, "DIn") == t)
-		Devices.add(new HoCoDInClass(n, c, PublishCb));
+		Devices.add(new HoCoDInClass(n, c, SubscribeCb, PublishCb));
 //	else if (ets_strstr(t, "DS1820") == t)
 //		Devices.add(new HangDS1820Class(n, c, Publish));
 //	else if (ets_strstr(t, "Oled") == t)
@@ -81,6 +74,18 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 	delete(c);
 	delete(n);
 	delete(t);
+}
+
+void ICACHE_FLASH_ATTR HoCo::SetConnected(bool connected) {
+	if (connected != isConnected) {
+		if (connected) {
+			if (isInitialized)
+				Start();
+			else
+				PublishCb((char*)"$config", (char*)"", false);
+		}
+		isConnected = connected;
+	}
 }
 
 /*
@@ -102,40 +107,19 @@ bool ICACHE_FLASH_ATTR HoCo::HandleMessage(char *topic, char *data) {
 	}
 	return false;
 }
-
-bool ICACHE_FLASH_ATTR HoCo::HandleNodeMessage(char *tp, char *data) {
-	if (os_strstr(tp, "reboot") == tp) {
-		Publish((char*)"", (char*)"connection", (char*)"reboot");
-		debugf("rebooting");
-		system_restart();
-	}
-	if (os_strstr(tp, "status") == tp) {
-		PublishStatus();
-		return true;
-	}
-	if (os_strstr(tp, "schedule/") == tp) {
-		char *tp2 = tp + 9;
-		uint8_t index = atoi(tp2);
-		debugf("schedule: %d", index);
-		HangScheduler::SetSchedule(index, data);
-		return true;
-	}
-	if (os_strstr(tp, "exec/") == tp) {
-//		char *tp2 = tp + 5;
-//		HangFunctions::Execute(tp2, data);
-//		return true;
-	}
-	return HandleDeviceMessage(tp, data);
-}
 */
 
-bool ICACHE_FLASH_ATTR HoCo::HandleDeviceMessage(char *tp, char *data) {
+bool ICACHE_FLASH_ATTR HoCo::HandleNodeMessage(char *subtopic, char *data) {
+	// ToDo : handle further node level messages
+}
+
+bool ICACHE_FLASH_ATTR HoCo::HandleDeviceMessage(char *subtopic, char *data) {
 	for (uint8_t i = 0; i < Devices.count(); i++) {
-		if (ets_strstr(tp, Devices[i]->DeviceId) == tp) {
-			char *tp2 = tp + ets_strlen(Devices[i]->DeviceId);
-			if (ets_strstr(tp2, "/") == tp2) {
-				tp2++;
-				Devices[i]->Received(tp2, data);
+		if (ets_strstr(subtopic, Devices[i]->DeviceId) == subtopic) {
+			char *subtopic2 = subtopic + ets_strlen(Devices[i]->DeviceId);
+			if (ets_strstr(subtopic2, "/") == subtopic2) {
+				subtopic2++;
+				Devices[i]->HandleDeviceMessage(subtopic2, data);
 				return true;
 			}
 		}
@@ -144,7 +128,9 @@ bool ICACHE_FLASH_ATTR HoCo::HandleDeviceMessage(char *tp, char *data) {
 
 void ICACHE_FLASH_ATTR HoCo::Start() {
 	DEBUG("HoCo::Start");
-	char nt[100];
+	if (!isInitialized)
+		return;
+//	char nt[100];
 //	ets_sprintf(nt, "/hang/%s/to/#", NodeId);
 //	SubscribeCb(mqttClient, (char*)nt, 0);
 	for (uint8_t i = 0; i < Devices.count(); i++)

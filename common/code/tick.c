@@ -2,11 +2,12 @@
 #include <user_interface.h>
 
 // seems like sdk 2.0 includes its own millis() definition
-//unsigned long millis() {
-//	return system_get_time() / 1000UL;
-//}
+// but it seems to return seconds instead of milliseconds
+unsigned long mymillis() {
+	return system_get_time() / 1000UL;
+}
 
-unsigned long micros() {
+unsigned long mymicros() {
 	return system_get_time();
 }
 
