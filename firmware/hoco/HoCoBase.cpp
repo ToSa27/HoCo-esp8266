@@ -78,12 +78,8 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 
 void ICACHE_FLASH_ATTR HoCo::SetConnected(bool connected) {
 	if (connected != isConnected) {
-		if (connected) {
-			if (isInitialized)
-				Start();
-			else
-				PublishCb((char*)"$config", (char*)"", false);
-		}
+		if (connected)
+			Start();
 		isConnected = connected;
 	}
 }

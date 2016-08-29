@@ -78,6 +78,11 @@ void ICACHE_FLASH_ATTR user_mqtt_state_cb(MqttState state) {
 		mqtt_fota_check(false);
 		// will be done in HoCo class instead
 		//mqtt_publish("$online", "true", true);
+		if (HwConfig.Conf[0] == 0) {
+			char hwrev[60];
+			ets_sprintf(hwrev, "{\"hw\":\"%s\",\"rev\":%d}", HwConfig.Type, HwConfig.Rev);
+			mqtt_publish((char*)"$config", (char*)hwrev, false);
+		}
 		HoCo::SetConnected(true);
 	}
 }
