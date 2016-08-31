@@ -80,6 +80,8 @@ void ICACHE_FLASH_ATTR HoCoScheduler::UpdateSchedule(uint8_t index, char *s) {
 	EVENT e = events.event[index];
 	if (CppJson::jsonHas(s, "en"))
 		events.event[index].Enabled = CppJson::jsonGetInt(s, "en");
+	if (CppJson::jsonHas(s, "int"))
+		events.event[index].Interval = CppJson::jsonGetInt(s, "int");
 	if (CppJson::jsonHas(s, "mod"))
 		events.event[index].MinuteOfDay = CppJson::jsonGetInt(s, "mod");
 	if (CppJson::jsonHas(s, "wd"))
@@ -135,20 +137,27 @@ void ICACHE_FLASH_ATTR HoCoScheduler::CheckEvents(void *data) {
 		for (uint8_t i = 0; i < EVT_MAX_EVENTS; i++) {
 			EVENT e = events.event[i];
 			if (e.Enabled > 0) {
-				if ((mod >= e.MinuteOfDay) && (mod < e.MinuteOfDay + 30))
-				{
-					if (LastExecution[i] < t - SECS_PER_HOUR)
+				if (e.Interval > 0) {
+					if (LastExecution[i] <= t - (e.MinuteOfDay * 60)) {
+						ExecuteEvent(e.Action);
+						LastExecution[i] = t;
+					}
+				} else {
+					if ((mod >= e.MinuteOfDay) && (mod < e.MinuteOfDay + 30))
 					{
-						bool exec = false;
-						if (IsHoliday && e.Holiday)
-							exec = true;
-						else if (IsVacation && e.Vacation)
-							exec = true;
-						else if ((e.WeekdayMask & (1 << wd)) > 0)
-							exec = true;
-						if (exec) {
-							ExecuteEvent(e.Action);
-							LastExecution[i] = t;
+						if (LastExecution[i] < t - SECS_PER_HOUR)
+						{
+							bool exec = false;
+							if (IsHoliday && e.Holiday)
+								exec = true;
+							else if (IsVacation && e.Vacation)
+								exec = true;
+							else if ((e.WeekdayMask & (1 << wd)) > 0)
+								exec = true;
+							if (exec) {
+								ExecuteEvent(e.Action);
+								LastExecution[i] = t;
+							}
 						}
 					}
 				}

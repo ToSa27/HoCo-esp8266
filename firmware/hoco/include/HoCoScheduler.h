@@ -16,7 +16,8 @@ typedef struct{
 	uint8_t Enabled:1;
 	uint8_t Holiday:1;
 	uint8_t Vacation:1;
-	uint8_t Reserved:3;
+	uint8_t Interval:1;
+	uint8_t Reserved:2;
 	uint8_t Random:2;
 	char Action[EVT_MAX_ACTION_LEN];
 } EVENT;
