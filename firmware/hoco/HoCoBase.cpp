@@ -2,6 +2,7 @@
 
 #include <CppJson.h>
 #include <debug.h>
+#include <HoCoScheduler.h>
 #include <HoCoDevice.h>
 #include <HoCoDIn.h>
 #include <HoCoDOut.h>
@@ -84,39 +85,25 @@ void ICACHE_FLASH_ATTR HoCo::SetConnected(bool connected) {
 	}
 }
 
-/*
-bool ICACHE_FLASH_ATTR HoCo::HandleMessage(char *topic, char *data) {
+void ICACHE_FLASH_ATTR HoCo::HandleMessage(char *subtopic, char *data) {
 	DEBUG("HoCo::HandleMessage");
-	char *tp = topic;
-	if (ets_strstr(tp, "broadcast/") == tp) {
-		tp += 10;
-		if (ets_strstr(tp, "time") == tp) {
-			HangScheduler::UpdateTime(data);
+	DEBUG("  t: %s", subtopic);
+	DEBUG("  d: %s", data);
+	if (subtopic[0] == '$') {
+		subtopic++;
+		if (ets_strstr(subtopic, "event/") == subtopic) {
+			subtopic += 6;
+			if (ets_strstr(subtopic, "/$set") > subtopic && ets_strstr(subtopic, "/$set") < subtopic + 3)
+				HoCoScheduler::UpdateSchedule(atoi(subtopic), data);
 		}
-	} else if (ets_strstr(tp, NodeId) == tp) {
-		tp += strlen(NodeId);
-		if (ets_strstr(tp, "/to/") == tp) {
-			DEBUG("to");
-			tp += 4;
-			return HandleNodeMessage(tp, data);
-		}
-	}
-	return false;
-}
-*/
-
-bool ICACHE_FLASH_ATTR HoCo::HandleNodeMessage(char *subtopic, char *data) {
-	// ToDo : handle further node level messages
-}
-
-bool ICACHE_FLASH_ATTR HoCo::HandleDeviceMessage(char *subtopic, char *data) {
-	for (uint8_t i = 0; i < Devices.count(); i++) {
-		if (ets_strstr(subtopic, Devices[i]->DeviceId) == subtopic) {
-			char *subtopic2 = subtopic + ets_strlen(Devices[i]->DeviceId);
-			if (ets_strstr(subtopic2, "/") == subtopic2) {
-				subtopic2++;
-				Devices[i]->HandleDeviceMessage(subtopic2, data);
-				return true;
+	} else {
+		for (uint8_t i = 0; i < Devices.count(); i++) {
+			if (ets_strstr(subtopic, Devices[i]->DeviceId) == subtopic) {
+				char *subtopic2 = subtopic + ets_strlen(Devices[i]->DeviceId);
+				if (ets_strstr(subtopic2, "/") == subtopic2) {
+					subtopic2++;
+					Devices[i]->HandleDeviceMessage(subtopic2, data);
+				}
 			}
 		}
 	}
@@ -131,6 +118,8 @@ void ICACHE_FLASH_ATTR HoCo::Start() {
 //	SubscribeCb(mqttClient, (char*)nt, 0);
 	for (uint8_t i = 0; i < Devices.count(); i++)
 		Devices[i]->Start();
+	HoCoScheduler::Init(PublishCb);
+	SubscribeCb((char*)"$event/+/$set");
 //	PublishStatus();
 }
 

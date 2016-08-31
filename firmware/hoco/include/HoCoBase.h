@@ -20,9 +20,7 @@ public:
 	~HoCo();
 	static void Init(char *config, subscribe_callback subscribe, publish_callback publish);
 	static void SetConnected(bool connected);
-//	static bool HandleMessage(char *topic, char *data);
-	static bool HandleNodeMessage(char *subtopic, char *data);
-	static bool HandleDeviceMessage(char *subtopic, char *data);
+	static void HandleMessage(char *subtopic, char *data);
 	static void Start();
 	static void Stop();
 //	static void Publish(char *deviceid, char* topic, char *data);

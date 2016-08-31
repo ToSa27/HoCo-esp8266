@@ -29,10 +29,7 @@ void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 				uint32_t t = atoi(subdataBuf);
 				subdataBuf = ets_strstr(subdataBuf, "/") + 1;
 				int32_t o = atoi(subdataBuf);
-				//setTimeAndOffsetC(t, o);
-				if (getLocalOffset() != o)
-					setLocalOffset(o);
-				setTime(t);
+				setTimeAndOffset(t, o);
 			}
 			// ToDo : handle further broadcast topics
 		} else if (ets_strstr(subtopicBuf, SysConfig.DeviceId) == subtopicBuf) {
@@ -58,10 +55,10 @@ void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 						hw_config_save();
 						boot_reboot();
 					} else {
-						HoCo::HandleNodeMessage(subtopicBuf - 1, data);
+						HoCo::HandleMessage(subtopicBuf - 1, data);
 					}
 				} else {
-					HoCo::HandleDeviceMessage(subtopicBuf, data);
+					HoCo::HandleMessage(subtopicBuf, data);
 				}
 			}
 		}
@@ -82,8 +79,11 @@ void ICACHE_FLASH_ATTR user_mqtt_state_cb(MqttState state) {
 			char hwrev[60];
 			ets_sprintf(hwrev, "{\"hw\":\"%s\",\"rev\":%d}", HwConfig.Type, HwConfig.Rev);
 			mqtt_publish((char*)"$config", (char*)hwrev, false);
+		} else {
+			mqtt_subscribe_broadcast((char*)"$time");
+			mqtt_publish((char*)"$time", (char*)"", false);
+			HoCo::SetConnected(true);
 		}
-		HoCo::SetConnected(true);
 	}
 }
 
@@ -107,6 +107,7 @@ void ICACHE_FLASH_ATTR user_init_done_cb() {
 	DEBUG("user_init_done_cb");
 	sys_config_load(false);
 	hw_config_load(false);
+	setSyncInterval(1000);
 	char topic[35];
 	ets_memset(topic, 0, sizeof(topic));
 	ets_sprintf(topic, "/hoco/%s/$online", SysConfig.DeviceId);

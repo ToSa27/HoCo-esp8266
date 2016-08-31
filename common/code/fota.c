@@ -33,7 +33,7 @@ static FotaStatus *upgrade;
 static os_timer_t fota_timer;
 
 bool ICACHE_FLASH_ATTR fota_write_flash(FlashStatus *status, uint8 *data, uint16 len) {
-	DEBUG("fota_write_flash");
+//	DEBUG("fota_write_flash");
 	bool ret = false;
 	uint8 *buffer;
 	int32 lastsect;
@@ -55,7 +55,7 @@ bool ICACHE_FLASH_ATTR fota_write_flash(FlashStatus *status, uint8 *data, uint16
 		status->last_sector_erased++;
 		spi_flash_erase_sector(status->last_sector_erased);
 	}
-	DEBUG("write addr: 0x%08x, len: 0x%04x\r\n", status->start_addr, len);
+	DEBUG("write addr: 0x%08x, len: 0x%04x", status->start_addr, len);
 	if (spi_flash_write(status->start_addr, (uint32 *)((void*)buffer), len) == SPI_FLASH_RESULT_OK) {
 		ret = true;
 		status->start_addr += len;

@@ -73,6 +73,25 @@ char *CppJson::jsonGetInternal(char *json, const char *name, bool trim) {
 	return (char*)"";
 }
 
+bool CppJson::jsonHas(char *json, const char *name) {
+	if (json[0] != '{')
+		return false;
+	char *cp = json + 1;
+	uint8_t bl = 1;
+	while (bl > 0) {
+		if (cp[0] == '{')
+			bl++;
+		else if (cp[0] == '}')
+			bl--;
+		else if (bl == 1) {
+			if ((cp[-1] == '\"') && (ets_strstr(cp, name) == cp) && (cp[ets_strlen(name)] == '\"'))
+				return true;
+		}
+		cp++;
+	}
+	return false;
+}
+
 char *CppJson::jsonGet(char *json, const char *name) {
 	return jsonGetInternal(json, name, false);
 }

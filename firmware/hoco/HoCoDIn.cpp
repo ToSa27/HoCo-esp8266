@@ -41,9 +41,10 @@ uint8_t ICACHE_FLASH_ATTR HoCoDInClass::Get() {
 
 void ICACHE_FLASH_ATTR HoCoDInClass::SendStatus() {
 	DEBUG("HoCoDInClass::SendStatus");
-	char jt[25];
+//	char jt[25];
 //	ets_sprintf(jt, "{\"in\":%d,\"triggered\":%d}", digitalRead(_Pin), _LastState);
 //	OnPublish((char*)"status", jt);
+	char jt[3];
 	ets_sprintf(jt, "%d", _DebounceState);
 	Publish((char*)"triggered", (char*)jt, true);
 }

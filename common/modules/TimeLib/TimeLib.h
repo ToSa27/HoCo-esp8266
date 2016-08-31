@@ -119,7 +119,7 @@ int     year(time_t t);    // the year for the given time
 
 time_t now();              // return the current time as seconds since Jan 1 1970
 void    setTime(time_t t);
-void    setLocalOffset(int32_t o);
+void    setTimeAndOffset(time_t t, int32_t o);
 int32_t getLocalOffset();
 void    adjustTime(long adjustment);
 

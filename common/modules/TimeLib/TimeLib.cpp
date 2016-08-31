@@ -255,9 +255,12 @@ void setTime(time_t t) {
   prevMillis = mymillis();  // restart counting from now (thanks to Korman for this fix)
 }
 
-void setLocalOffset(int32 o) {
-	localOffset = o;
-	refreshCache(now());
+void setTimeAndOffset(time_t t, int32 o) {
+	setTime(t);
+	if (localOffset != o) {
+		localOffset = o;
+		refreshCache(now());
+	}
 }
 
 int32 getLocalOffset() {

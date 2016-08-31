@@ -12,8 +12,12 @@
 		/$reset				C->N	N	sh	{blank or facory}
 		/$ota				C->N	N	sh	json with the fw to update		{"hw":"Default","rev":1,"type":"FIRMWARE","major":1,"minor":1,"build":138}	
 		/$ota/check			N->C	N	p	json with current fw details	{"HARDWARE":{"type":"Default","rev":1},"BOOTLOADER":{"slot":0,"major":1,"minor":1,"build":392},"FACTORY":{"slot":1,"major":1,"minor":1,"build":214},"FIRMWARE":{"slot":2,"major":1,"minor":1,"build":138}}	
+		/$time				N->C	N	sh	empty, requesting time from controller (will answer with /hoco/$time broadcast
 		/$config			N->C	Y	p
 			/$set			C->N	N	
+		/$event				
+			/{id}			N->C	Y
+				/$set		C->N	N	
 		/$devices			N->C	Y	
 		/{device}
 			/$config		N->C	Y	
