@@ -1,6 +1,8 @@
 /hoco
-	/$time					C->N	N	sh	{epoch}/{offset}
-	/$dates					C->N	N	sh	{"h":[array of holidays],"v":{"f":vacation start date,"t":vacation end date}}
+	/$time
+		/$epoch				C->N	N	sh	{epoch}
+		/$zone				C->N	N	sh	{offset}
+		/$dates				C->N	N	sh	{"h":[array of holidays],"v":{"f":vacation start date,"t":vacation end date}}
 	/{node}
 		/$online			N->C	Y	pl	{true or false}
 		/$name				N->C	Y	p	{name string}		resubmit on change?

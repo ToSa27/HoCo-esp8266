@@ -70,8 +70,6 @@ void ICACHE_FLASH_ATTR user_mqtt_state_cb(MqttState state) {
 			ets_sprintf(hwrev, "{\"hw\":\"%s\",\"rev\":%d}", HwConfig.Type, HwConfig.Rev);
 			mqtt_publish((char*)"$config", (char*)hwrev, false);
 		} else {
-			mqtt_subscribe_broadcast((char*)"$time");
-			mqtt_publish((char*)"$time", (char*)"", false);
 			HoCo::SetConnected(true);
 		}
 	}

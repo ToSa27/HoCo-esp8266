@@ -38,7 +38,7 @@ public:
 	static void PublishEvents();
 	static void PublishEvent(uint8_t index);
 	static void UpdateSchedule(uint8_t index, char *schedule);
-	static void UpdateDates(char* data);
+	static void HandleTimeBroadcast(char *subtopic, char* data);
 private:
 	static EVENTS events;
 	static void LoadEvents(bool reset);

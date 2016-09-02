@@ -82,8 +82,11 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 
 void ICACHE_FLASH_ATTR HoCo::SetConnected(bool connected) {
 	if (connected != isConnected) {
-		if (connected)
+		if (connected) {
+			mqtt_subscribe_broadcast((char*)"$time/#");
+			mqtt_publish((char*)"$time", (char*)"", false);
 			Start();
+		}
 		isConnected = connected;
 	}
 }
@@ -93,17 +96,9 @@ void ICACHE_FLASH_ATTR HoCo::HandleBroadcastMessage(char *subtopic, char *data) 
 	DEBUG("  t: %s", subtopic);
 	DEBUG("  d: %s", data);
 	char *subtopicBuf = subtopic;
-	if (subtopicBuf[0] == '$') {
-		subtopicBuf += 1;
-		if (ets_strstr(subtopicBuf, "time") == subtopicBuf) {
-			char *subdataBuf = data;
-			uint32_t t = atoi(subdataBuf);
-			subdataBuf = ets_strstr(subdataBuf, "/") + 1;
-			int32_t o = atoi(subdataBuf);
-			setTimeAndOffset(t, o);
-		} else if (ets_strstr(subtopicBuf, "dates") == subtopicBuf) {
-			HoCoScheduler::UpdateDates(data);
-		}
+	if (ets_strstr(subtopicBuf, "$time/") == subtopicBuf) {
+		subtopicBuf += 6;
+		HoCoScheduler::HandleTimeBroadcast(subtopicBuf, data);
 	}
 }
 

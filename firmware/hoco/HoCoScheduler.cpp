@@ -10,12 +10,6 @@ extern "C" {
 
 bool HoCoScheduler::IsInitialized = false;
 ETSTimer HoCoScheduler::CheckEventsTimer;
-//publish_callback HoCoScheduler::PublishCb = NULL;
-/*
-uint32_t HoCoScheduler::NextHoliday[MAX_HOLIDAY];
-uint32_t HoCoScheduler::NextVacationStart = 0;
-uint32_t HoCoScheduler::NextVacationEnd = 0;
-*/
 EVENTS HoCoScheduler::events;
 uint32_t HoCoScheduler::LastExecution[EVT_MAX_EVENTS];
 
@@ -29,63 +23,46 @@ void ICACHE_FLASH_ATTR HoCoScheduler::Init() {
 	ets_timer_arm_new(&CheckEventsTimer, 15000, 1, 0);
 }
 
-void ICACHE_FLASH_ATTR HoCoScheduler::UpdateDates(char* data) {
-	DEBUG("HoCoScheduler::UpdateDates");
-	uint8_t i = 0;
-	char *h = CppJson::jsonGet(data, "h");
-	if (h != NULL) {
-		char *hi;
-		char *pos = CppJson::jsonGetArrayFirst(h, hi);
-		while (hi != NULL) {
-			events.NextHoliday[i] = atoi(hi);
-			i++;
-			delete(hi);
-			if (i == EVT_MAX_HOLIDAY)
-				break;
-			pos = CppJson::jsonGetArrayNext(pos, hi);
+void ICACHE_FLASH_ATTR HoCoScheduler::HandleTimeBroadcast(char *subtopic, char* data) {
+	DEBUG("HoCoScheduler::HandleTimeBroadcast");
+	DEBUG("  t: %s", subtopic);
+	DEBUG("  d: %s", data);
+	char *subtopicBuf = subtopic;
+	if (subtopicBuf[0] == '$') {
+		subtopicBuf++;
+		if (ets_strstr(subtopicBuf, "epoch") == subtopicBuf)
+			setTime(atoi(data));
+		else if (ets_strstr(subtopicBuf, "zone") == subtopicBuf)
+			setLocalOffset(atoi(data));
+		else if (ets_strstr(subtopicBuf, "dates") == subtopicBuf) {
+			uint8_t i = 0;
+			char *h = CppJson::jsonGet(data, "h");
+			if (h != NULL) {
+				char *hi;
+				char *pos = CppJson::jsonGetArrayFirst(h, hi);
+				while (hi != NULL) {
+					events.NextHoliday[i] = atoi(hi);
+					i++;
+					delete(hi);
+					if (i == EVT_MAX_HOLIDAY)
+						break;
+					pos = CppJson::jsonGetArrayNext(pos, hi);
+				}
+				while (i < EVT_MAX_HOLIDAY) {
+					events.NextHoliday[i] = 0;
+					i++;
+				}
+			}
+			char *v = CppJson::jsonGet(data, "v");
+			if (v != NULL) {
+				events.NextVacationStart = CppJson::jsonGetTime(v, "f");
+				events.NextVacationEnd = CppJson::jsonGetTime(v, "t");
+			}
 		}
-		while (i < EVT_MAX_HOLIDAY) {
-			events.NextHoliday[i] = 0;
-			i++;
-		}
-	}
-	char *v = CppJson::jsonGet(data, "v");
-	if (v != NULL) {
-		events.NextVacationStart = CppJson::jsonGetTime(v, "f");
-		events.NextVacationEnd = CppJson::jsonGetTime(v, "t");
 	}
 }
 
 /*
-void ICACHE_FLASH_ATTR HoCoScheduler::UpdateTime(char* data) {
-	time_t t = jsonGetTime(data, "n");
-	setTime(t);
-	debugf("HoCoScheduler::UpdateTime - %d", t);
-	uint8_t i = 0;
-	char *h = jsonGet(data, "h");
-	if (h != NULL) {
-		char *hi;
-		char *pos = jsonGetArrayFirst(h, hi);
-		while (hi != NULL) {
-			NextHoliday[i] = atoi(hi);
-			i++;
-			delete(hi);
-			if (i == MAX_HOLIDAY)
-				break;
-			pos = jsonGetArrayNext(pos, hi);
-		}
-		while (i < MAX_HOLIDAY) {
-			NextHoliday[i] = 0;
-			i++;
-		}
-	}
-	char *v = jsonGet(data, "v");
-	if (v != NULL) {
-		NextVacationStart = jsonGetTime(v, "f");
-		NextVacationEnd = jsonGetTime(v, "t");
-	}
-}
-
 void ICACHE_FLASH_ATTR HoCoScheduler::PrintEvent(uint8_t index) {
 	EVENT e = events.event[index];
 	debugf("Schedule Event %d", index);
@@ -228,7 +205,5 @@ void ICACHE_FLASH_ATTR HoCoScheduler::PublishEvent(uint8_t index) {
 		char jt[80 + EVT_MAX_ACTION_LEN];
 		ets_sprintf(jt, "{\"en\":%d,\"mod\":%d,\"wd\":%d,\"h\":%d,\"v\":%d,\"r\":%d,\"a\":\"%s\"}", e.Enabled, e.MinuteOfDay, e.WeekdayMask, e.Holiday, e.Vacation, e.Random, a);
 		mqtt_publish(t,jt, true);
-//		if (PublishCb)
-//			PublishCb(t, jt, true);
 	}
 }
