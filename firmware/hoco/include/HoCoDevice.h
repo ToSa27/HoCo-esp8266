@@ -4,9 +4,9 @@
 #include <HoCo.h>
 
 class HoCoDeviceClass {
-private:
-	subscribe_callback _SubscribeCallback;
-	publish_callback _PublishCallback;
+//private:
+//	subscribe_callback _SubscribeCallback;
+//	publish_callback _PublishCallback;
 protected:
 	void Subscribe(char *Topic);
 	void Publish(char *Topic, char *Data, bool Retain);
@@ -16,7 +16,7 @@ protected:
 //	virtual void ReceivedSub(char *Topic, char *Data) = 0;
 	virtual void HandlePropertyMessage(char *Topic, char *Data) = 0;
 public:
-	HoCoDeviceClass(char *Name, subscribe_callback subscribe, publish_callback publish);
+	HoCoDeviceClass(char *Name);
 	virtual ~HoCoDeviceClass();
 	virtual void Start() = 0;
 	virtual void Stop() = 0;

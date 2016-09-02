@@ -4,7 +4,7 @@
 #include <debug.h>
 #include <pin.h>
 
-HoCoDOutClass::HoCoDOutClass(char *Name, char *Config, subscribe_callback subscribe, publish_callback publish) : HoCoDeviceClass(Name, subscribe, publish) {
+HoCoDOutClass::HoCoDOutClass(char *Name, char *Config) : HoCoDeviceClass(Name) {
 	SetConfig(Config);
 	Subscribe((char*)"on/$set");
 }
@@ -71,5 +71,8 @@ void ICACHE_FLASH_ATTR HoCoDOutClass::Stop() {
 void ICACHE_FLASH_ATTR HoCoDOutClass::HandlePropertyMessage(char *Topic, char *Data) {
 	DEBUG("HoCoDOutClass::HandlePropertyMessage");
 	if (ets_strstr(Topic, "on/$set"))
-		Set(atoi(Data));
+		if (Data[0] =='t')	// toggle
+			Set(1 - Get());
+		else
+			Set(atoi(Data));
 }

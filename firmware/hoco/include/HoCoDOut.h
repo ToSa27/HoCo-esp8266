@@ -15,7 +15,7 @@ protected:
 //	void SendConfig();
 	void HandlePropertyMessage(char *Topic, char *Data);
 public:
-	HoCoDOutClass(char *Name, char *Config, subscribe_callback subscribe, publish_callback publish);
+	HoCoDOutClass(char *Name, char *Config);
 	~HoCoDOutClass();
 	void Start();
 	void Stop();

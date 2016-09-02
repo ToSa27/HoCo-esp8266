@@ -1,5 +1,6 @@
 #include <HoCoBase.h>
 
+#include <TimeLib.h>
 #include <CppJson.h>
 #include <debug.h>
 #include <HoCoScheduler.h>
@@ -10,8 +11,8 @@
 bool HoCo::isInitialized = false;
 bool HoCo::isConnected = false;
 Vector<HoCoDeviceClass*> HoCo::Devices;
-subscribe_callback HoCo::SubscribeCb = NULL;
-publish_callback HoCo::PublishCb = NULL;
+//subscribe_callback HoCo::SubscribeCb = NULL;
+//publish_callback HoCo::PublishCb = NULL;
 
 HoCo::~HoCo() {
 	Devices.clear();
@@ -19,11 +20,11 @@ HoCo::~HoCo() {
 
 // config json format:
 // {"n":"...","d":[{...},{...},{...}]}
-void ICACHE_FLASH_ATTR HoCo::Init(char *config, subscribe_callback subscribe, publish_callback publish) {
+void ICACHE_FLASH_ATTR HoCo::Init(char *config) {
 	DEBUG("HoCo::Init");
 	DEBUG("config: %s", config);
-	SubscribeCb = subscribe;
-	PublishCb = publish;
+//	SubscribeCb = subscribe;
+//	PublishCb = publish;
 	if (ets_strlen(config) > 0)
 	{
 		char *d = CppJson::jsonGet(config, "d");
@@ -54,9 +55,11 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 	char *c = CppJson::jsonGet(config, "c");
 	DEBUG("HoCo::InitDevice - Type: %s / Name: %s", t, n);
 	if (ets_strstr(t, "DOut") == t)
-		Devices.add(new HoCoDOutClass(n, c, SubscribeCb, PublishCb));
+		Devices.add(new HoCoDOutClass(n, c));
+//		Devices.add(new HoCoDOutClass(n, c, SubscribeCb, PublishCb));
 	else if (ets_strstr(t, "DIn") == t)
-		Devices.add(new HoCoDInClass(n, c, SubscribeCb, PublishCb));
+		Devices.add(new HoCoDInClass(n, c));
+//		Devices.add(new HoCoDInClass(n, c, SubscribeCb, PublishCb));
 //	else if (ets_strstr(t, "DS1820") == t)
 //		Devices.add(new HangDS1820Class(n, c, Publish));
 //	else if (ets_strstr(t, "Oled") == t)
@@ -82,6 +85,25 @@ void ICACHE_FLASH_ATTR HoCo::SetConnected(bool connected) {
 		if (connected)
 			Start();
 		isConnected = connected;
+	}
+}
+
+void ICACHE_FLASH_ATTR HoCo::HandleBroadcastMessage(char *subtopic, char *data) {
+	DEBUG("HoCo::HandleBroadcastMessage");
+	DEBUG("  t: %s", subtopic);
+	DEBUG("  d: %s", data);
+	char *subtopicBuf = subtopic;
+	if (subtopicBuf[0] == '$') {
+		subtopicBuf += 1;
+		if (ets_strstr(subtopicBuf, "time") == subtopicBuf) {
+			char *subdataBuf = data;
+			uint32_t t = atoi(subdataBuf);
+			subdataBuf = ets_strstr(subdataBuf, "/") + 1;
+			int32_t o = atoi(subdataBuf);
+			setTimeAndOffset(t, o);
+		} else if (ets_strstr(subtopicBuf, "dates") == subtopicBuf) {
+			HoCoScheduler::UpdateDates(data);
+		}
 	}
 }
 
@@ -118,8 +140,8 @@ void ICACHE_FLASH_ATTR HoCo::Start() {
 //	SubscribeCb(mqttClient, (char*)nt, 0);
 	for (uint8_t i = 0; i < Devices.count(); i++)
 		Devices[i]->Start();
-	HoCoScheduler::Init(PublishCb);
-	SubscribeCb((char*)"$event/+/$set");
+	HoCoScheduler::Init();
+	mqtt_subscribe((char*)"$event/+/$set");
 //	PublishStatus();
 }
 

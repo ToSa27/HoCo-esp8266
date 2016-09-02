@@ -10,7 +10,7 @@ extern "C" {
 
 bool HoCoScheduler::IsInitialized = false;
 ETSTimer HoCoScheduler::CheckEventsTimer;
-publish_callback HoCoScheduler::PublishCb = NULL;
+//publish_callback HoCoScheduler::PublishCb = NULL;
 /*
 uint32_t HoCoScheduler::NextHoliday[MAX_HOLIDAY];
 uint32_t HoCoScheduler::NextVacationStart = 0;
@@ -19,15 +19,41 @@ uint32_t HoCoScheduler::NextVacationEnd = 0;
 EVENTS HoCoScheduler::events;
 uint32_t HoCoScheduler::LastExecution[EVT_MAX_EVENTS];
 
-void ICACHE_FLASH_ATTR HoCoScheduler::Init(publish_callback publish) {
-	if (publish)
-		PublishCb = publish;
+void ICACHE_FLASH_ATTR HoCoScheduler::Init() {
 	LoadEvents(false);
 	for (uint8_t i = 0; i < EVT_MAX_EVENTS; i++)
 		LastExecution[i] = 0;
+	setSyncInterval(1000);
 	ets_timer_disarm(&CheckEventsTimer);
 	ets_timer_setfn(&CheckEventsTimer, (ETSTimerFunc *)CheckEvents, NULL);
 	ets_timer_arm_new(&CheckEventsTimer, 15000, 1, 0);
+}
+
+void ICACHE_FLASH_ATTR HoCoScheduler::UpdateDates(char* data) {
+	DEBUG("HoCoScheduler::UpdateDates");
+	uint8_t i = 0;
+	char *h = CppJson::jsonGet(data, "h");
+	if (h != NULL) {
+		char *hi;
+		char *pos = CppJson::jsonGetArrayFirst(h, hi);
+		while (hi != NULL) {
+			events.NextHoliday[i] = atoi(hi);
+			i++;
+			delete(hi);
+			if (i == EVT_MAX_HOLIDAY)
+				break;
+			pos = CppJson::jsonGetArrayNext(pos, hi);
+		}
+		while (i < EVT_MAX_HOLIDAY) {
+			events.NextHoliday[i] = 0;
+			i++;
+		}
+	}
+	char *v = CppJson::jsonGet(data, "v");
+	if (v != NULL) {
+		events.NextVacationStart = CppJson::jsonGetTime(v, "f");
+		events.NextVacationEnd = CppJson::jsonGetTime(v, "t");
+	}
 }
 
 /*
@@ -201,7 +227,8 @@ void ICACHE_FLASH_ATTR HoCoScheduler::PublishEvent(uint8_t index) {
 				a[i] = '\'';
 		char jt[80 + EVT_MAX_ACTION_LEN];
 		ets_sprintf(jt, "{\"en\":%d,\"mod\":%d,\"wd\":%d,\"h\":%d,\"v\":%d,\"r\":%d,\"a\":\"%s\"}", e.Enabled, e.MinuteOfDay, e.WeekdayMask, e.Holiday, e.Vacation, e.Random, a);
-		if (PublishCb)
-			PublishCb(t, jt, true);
+		mqtt_publish(t,jt, true);
+//		if (PublishCb)
+//			PublishCb(t, jt, true);
 	}
 }

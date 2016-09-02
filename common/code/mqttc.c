@@ -8,6 +8,7 @@
 #include <sys_config.h>
 #include <hw_config.h>
 #include <user_config.h>
+#include <stdarg.h>
 
 MQTT_Client mqtt_client;
 MqttState mqtt_state = MQTT_UNKNOWN;
@@ -164,4 +165,17 @@ void ICACHE_FLASH_ATTR mqtt_publish(char *subtopic, char *data, bool retain) {
 	DEBUG("  t: %s", topic);
 	DEBUG("  d: %s", data);
 	MQTT_Publish(&mqtt_client, topic, data, os_strlen(data), 0, retain ? 1 : 0);
+}
+
+void ICACHE_FLASH_ATTR mqtt_debug(const char* fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	ets_printf(fmt, ap);
+	ets_printf("\r\n");
+	if (mqtt_state == MQTT_CONNECTED) {
+		char msg[100];
+		ets_sprintf(msg, fmt, ap);
+		mqtt_publish((char*)"$debug", (char*)msg, false);
+	}
+	va_end(ap);
 }

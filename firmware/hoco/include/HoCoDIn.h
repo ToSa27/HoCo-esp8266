@@ -23,7 +23,7 @@ protected:
 //	void SendConfig();
 	void HandlePropertyMessage(char *Topic, char *Data);
 public:
-	HoCoDInClass(char *Name, char *Config, subscribe_callback subscribe, publish_callback publish);
+	HoCoDInClass(char *Name, char *Config);
 	~HoCoDInClass();
 	void Start();
 	void Stop();

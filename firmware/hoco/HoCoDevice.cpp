@@ -2,12 +2,12 @@
 
 #include <debug.h>
 
-HoCoDeviceClass::HoCoDeviceClass(char *Name, subscribe_callback subscribe, publish_callback publish) {
+HoCoDeviceClass::HoCoDeviceClass(char *Name) {
 	DeviceId = new char[ets_strlen(Name) + 1];
 	ets_memcpy(DeviceId, Name, ets_strlen(Name));
 	DeviceId[ets_strlen(Name)] = '\0';
-	_SubscribeCallback = subscribe;
-	_PublishCallback = publish;
+//	_SubscribeCallback = subscribe;
+//	_PublishCallback = publish;
 	Subscribe((char*)"$config/$set");
 }
 
@@ -26,13 +26,15 @@ void ICACHE_FLASH_ATTR HoCoDeviceClass::HandleDeviceMessage(char *Topic, char *D
 void ICACHE_FLASH_ATTR HoCoDeviceClass::Subscribe(char *Topic) {
 	char *t = new char[ets_strlen(DeviceId) + ets_strlen(Topic) + 2];
 	ets_sprintf(t, "%s/%s", DeviceId, Topic);
-	if (_SubscribeCallback)
-		_SubscribeCallback(t);
+	mqtt_subscribe(t);
+//	if (_SubscribeCallback)
+//		_SubscribeCallback(t);
 }
 
 void ICACHE_FLASH_ATTR HoCoDeviceClass::Publish(char *Topic, char *Data, bool Retain) {
 	char *t = new char[ets_strlen(DeviceId) + ets_strlen(Topic) + 2];
 	ets_sprintf(t, "%s/%s", DeviceId, Topic);
-	if (_PublishCallback)
-		_PublishCallback(t, Data, Retain);
+	mqtt_publish(t, Data, Retain);
+//	if (_PublishCallback)
+//		_PublishCallback(t, Data, Retain);
 }

@@ -21,7 +21,7 @@
 //	_LastInterrupt = millis();
 //}
 
-HoCoDInClass::HoCoDInClass(char *Name, char *Config, subscribe_callback subscribe, publish_callback publish) : HoCoDeviceClass(Name, subscribe, publish) {
+HoCoDInClass::HoCoDInClass(char *Name, char *Config) : HoCoDeviceClass(Name) {
 	SetConfig(Config);
 }
 

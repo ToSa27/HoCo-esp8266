@@ -1,5 +1,4 @@
 #include <user_cpp.h>
-#include <TimeLib.h>
 #include <HoCoBase.h>
 
 extern "C" {
@@ -22,16 +21,7 @@ void ICACHE_FLASH_ATTR user_mqtt_receive_cb(char *topic, char *data) {
 	if (ets_strstr(subtopicBuf, "/hoco/") == subtopicBuf) {
 		subtopicBuf += 6;
 		if (subtopicBuf[0] == '$') {
-			subtopicBuf += 1;
-			if (ets_strstr(subtopicBuf, "time") == subtopicBuf) {
-				subtopicBuf += 4;
-				char *subdataBuf = data;
-				uint32_t t = atoi(subdataBuf);
-				subdataBuf = ets_strstr(subdataBuf, "/") + 1;
-				int32_t o = atoi(subdataBuf);
-				setTimeAndOffset(t, o);
-			}
-			// ToDo : handle further broadcast topics
+			HoCo::HandleBroadcastMessage(subtopicBuf, data);
 		} else if (ets_strstr(subtopicBuf, SysConfig.DeviceId) == subtopicBuf) {
 			subtopicBuf += ets_strlen(SysConfig.DeviceId);
 			if (subtopicBuf[0] == '/') {
@@ -107,12 +97,11 @@ void ICACHE_FLASH_ATTR user_init_done_cb() {
 	DEBUG("user_init_done_cb");
 	sys_config_load(false);
 	hw_config_load(false);
-	setSyncInterval(1000);
 	char topic[35];
 	ets_memset(topic, 0, sizeof(topic));
 	ets_sprintf(topic, "/hoco/%s/$online", SysConfig.DeviceId);
 	mqtt_init(user_mqtt_state_cb, topic, (char *)"false", user_mqtt_receive_cb);
-	HoCo::Init(HwConfig.Conf, mqtt_subscribe, mqtt_publish);
+	HoCo::Init(HwConfig.Conf);
 	wifi_init(STATION_MODE, false, user_wifi_state_cb);
 }
 

@@ -31,6 +31,7 @@ void ICACHE_FLASH_ATTR mqtt_fota_check(bool force);
 void ICACHE_FLASH_ATTR mqtt_subscribe_broadcast(char *subtopic);
 void ICACHE_FLASH_ATTR mqtt_subscribe(char *subtopic);
 void ICACHE_FLASH_ATTR mqtt_publish(char *subtopic, char *data, bool retain);
+void ICACHE_FLASH_ATTR mqtt_debug(const char* fmt, ...);
 
 #ifdef __cplusplus
 }

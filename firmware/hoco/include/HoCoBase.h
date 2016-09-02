@@ -12,14 +12,15 @@ private:
 	static bool isConnected;
 	static Vector<HoCoDeviceClass*> Devices;
 	static void InitDevice(char *config);
-	static subscribe_callback SubscribeCb;
-	static publish_callback PublishCb;
+//	static subscribe_callback SubscribeCb;
+//	static publish_callback PublishCb;
 protected:
 //	static void PublishStatus();
 public:
 	~HoCo();
-	static void Init(char *config, subscribe_callback subscribe, publish_callback publish);
+	static void Init(char *config);
 	static void SetConnected(bool connected);
+	static void HandleBroadcastMessage(char *subtopic, char *data);
 	static void HandleMessage(char *subtopic, char *data);
 	static void Start();
 	static void Stop();

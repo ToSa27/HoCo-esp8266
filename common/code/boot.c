@@ -54,7 +54,6 @@ void ICACHE_FLASH_ATTR boot_reboot_to_slot(uint8 temp_slot) {
 
 void ICACHE_FLASH_ATTR boot_reboot_to_factory() {
 	DEBUG("boot_reboot_to_factory");
-	uint8 latest = 0;
 	bootloader_config romconf;
 	if (boot_get_config(&romconf))
 		boot_reboot_to_slot(boot_find_latest(romconf, "FACTORY"));

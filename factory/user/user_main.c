@@ -12,6 +12,13 @@
 #include <user_httpd.h>
 #include <cache_read_enable.c>
 
+ETSTimer user_restart_timer;
+
+void ICACHE_FLASH_ATTR user_restart_timer_cb(void *arg) {
+	INFO("user_restart_timer_cb");
+	boot_reboot();
+}
+
 void ICACHE_FLASH_ATTR user_fota_cb(FotaResult result, uint8 rom_slot) {
 	DEBUG("user_fota_cb");
 	if (result == FOTA_SUCCESS) {
@@ -73,6 +80,14 @@ void ICACHE_FLASH_ATTR user_mqtt_state_cb(MqttState state) {
 		mqtt_announce();
 		mqtt_fota_check(false);
 		mqtt_publish("$online", "true", true);
+		bootloader_config romconf;
+		if (boot_get_config(&romconf)) {
+			if (boot_find_latest(romconf, "FIRMWARE") > 0) {
+				ets_timer_disarm(&user_restart_timer);
+				ets_timer_setfn(&user_restart_timer, (os_timer_func_t *)user_restart_timer_cb, NULL);
+				ets_timer_arm_new(&user_restart_timer, 2 * 60 * 1000, 0, 0);
+			}
+		}
 	}
 }
 

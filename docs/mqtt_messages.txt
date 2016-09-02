@@ -1,5 +1,6 @@
 /hoco
 	/$time					C->N	N	sh	{epoch}/{offset}
+	/$dates					C->N	N	sh	{"h":[array of holidays],"v":{"f":vacation start date,"t":vacation end date}}
 	/{node}
 		/$online			N->C	Y	pl	{true or false}
 		/$name				N->C	Y	p	{name string}		resubmit on change?
@@ -13,6 +14,7 @@
 		/$ota				C->N	N	sh	json with the fw to update		{"hw":"Default","rev":1,"type":"FIRMWARE","major":1,"minor":1,"build":138}	
 		/$ota/check			N->C	N	p	json with current fw details	{"HARDWARE":{"type":"Default","rev":1},"BOOTLOADER":{"slot":0,"major":1,"minor":1,"build":392},"FACTORY":{"slot":1,"major":1,"minor":1,"build":214},"FIRMWARE":{"slot":2,"major":1,"minor":1,"build":138}}	
 		/$time				N->C	N	sh	empty, requesting time from controller (will answer with /hoco/$time broadcast
+		/$debug				N->C	N	p	debug messages avove threshold (see debug.h) submitted via mqtt - e.g. ERROR and FATAL
 		/$config			N->C	Y	p
 			/$set			C->N	N	
 		/$event				
