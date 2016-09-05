@@ -52,16 +52,16 @@ int hour() { // the hour now
   return hour(now());
 }
 
-int hour(time_t t) { // the hour for the given time
+int ICACHE_FLASH_ATTR hour(time_t t) { // the hour for the given time
   refreshCache(t);
   return tm.Hour;
 }
 
-int hourFormat12() { // the hour now in 12 hour format
+int ICACHE_FLASH_ATTR hourFormat12() { // the hour now in 12 hour format
   return hourFormat12(now());
 }
 
-int hourFormat12(time_t t) { // the hour for the given time in 12 hour format
+int ICACHE_FLASH_ATTR hourFormat12(time_t t) { // the hour for the given time in 12 hour format
   refreshCache(t);
   if( tm.Hour == 0 )
     return 12; // 12 midnight
@@ -71,72 +71,72 @@ int hourFormat12(time_t t) { // the hour for the given time in 12 hour format
     return tm.Hour ;
 }
 
-uint8_t isAM() { // returns true if time now is AM
+uint8_t ICACHE_FLASH_ATTR isAM() { // returns true if time now is AM
   return !isPM(now());
 }
 
-uint8_t isAM(time_t t) { // returns true if given time is AM
+uint8_t ICACHE_FLASH_ATTR isAM(time_t t) { // returns true if given time is AM
   return !isPM(t);
 }
 
-uint8_t isPM() { // returns true if PM
+uint8_t ICACHE_FLASH_ATTR isPM() { // returns true if PM
   return isPM(now());
 }
 
-uint8_t isPM(time_t t) { // returns true if PM
+uint8_t ICACHE_FLASH_ATTR isPM(time_t t) { // returns true if PM
   return (hour(t) >= 12);
 }
 
-int minute() {
+int ICACHE_FLASH_ATTR minute() {
   return minute(now());
 }
 
-int minute(time_t t) { // the minute for the given time
+int ICACHE_FLASH_ATTR minute(time_t t) { // the minute for the given time
   refreshCache(t);
   return tm.Minute;
 }
 
-int second() {
+int ICACHE_FLASH_ATTR second() {
   return second(now());
 }
 
-int second(time_t t) {  // the second for the given time
+int ICACHE_FLASH_ATTR second(time_t t) {  // the second for the given time
   refreshCache(t);
   return tm.Second;
 }
 
-int day(){
+int ICACHE_FLASH_ATTR day(){
   return(day(now()));
 }
 
-int day(time_t t) { // the day for the given time (0-6)
+int ICACHE_FLASH_ATTR day(time_t t) { // the day for the given time (0-6)
   refreshCache(t);
   return tm.Day;
 }
 
-int weekday() {   // Sunday is day 1
+int ICACHE_FLASH_ATTR weekday() {   // Sunday is day 1
   return  weekday(now());
 }
 
-int weekday(time_t t) {
+int ICACHE_FLASH_ATTR weekday(time_t t) {
   refreshCache(t);
   return tm.Wday;
 }
 
-int month(){
+int ICACHE_FLASH_ATTR month(){
   return month(now());
 }
 
-int month(time_t t) {  // the month for the given time
+int ICACHE_FLASH_ATTR month(time_t t) {  // the month for the given time
   refreshCache(t);
   return tm.Month;
 }
 
-int year() {  // as in Processing, the full four digit year: (2009, 2010 etc)
+int ICACHE_FLASH_ATTR year() {  // as in Processing, the full four digit year: (2009, 2010 etc)
   return year(now());
 }
 
-int year(time_t t) { // the year for the given time
+int ICACHE_FLASH_ATTR year(time_t t) { // the year for the given time
   refreshCache(t);
   return tmYearToCalendar(tm.Year);
 }
@@ -150,7 +150,7 @@ int year(time_t t) { // the year for the given time
 
 static  const uint8_t monthDays[]={31,28,31,30,31,30,31,31,30,31,30,31}; // API starts months from 1, this array starts from 0
 
-void breakTime(time_t timeInput, tmElements_t &tm){
+void ICACHE_FLASH_ATTR breakTime(time_t timeInput, tmElements_t &tm){
 // break the given time_t into time components
 // this is a more compact version of the C library localtime function
 // note that year is offset from 1970 !!!
@@ -219,7 +219,7 @@ time_t sysUnsyncedTime = 0; // the time sysTime unadjusted by sync
 #endif
 
 
-time_t now() {
+time_t ICACHE_FLASH_ATTR now() {
 	// calculate number of seconds passed since last call to now()
   while (mymillis() - prevMillis >= 1000) {
 		// millis() and prevMillis are both unsigned ints thus the subtraction will always be the absolute value of the difference
@@ -243,7 +243,7 @@ time_t now() {
   return (time_t)sysTime;
 }
 
-void setTime(time_t t) {
+void ICACHE_FLASH_ATTR setTime(time_t t) {
 #ifdef TIME_DRIFT_INFO
  if(sysUnsyncedTime == 0)
    sysUnsyncedTime = t;   // store the time of the first call to set a valid Time
@@ -255,34 +255,34 @@ void setTime(time_t t) {
   prevMillis = mymillis();  // restart counting from now (thanks to Korman for this fix)
 }
 
-void setLocalOffset(int32 o) {
+void ICACHE_FLASH_ATTR setLocalOffset(int32 o) {
 	if (localOffset != o) {
 		localOffset = o;
 		refreshCache(now());
 	}
 }
 
-int32 getLocalOffset() {
+int32 ICACHE_FLASH_ATTR getLocalOffset() {
 	return localOffset;
 }
 
-void adjustTime(long adjustment) {
+void ICACHE_FLASH_ATTR adjustTime(long adjustment) {
   sysTime += adjustment;
 }
 
 // indicates if time has been set and recently synchronized
-timeStatus_t timeStatus() {
+timeStatus_t ICACHE_FLASH_ATTR timeStatus() {
   now(); // required to actually update the status
   return Status;
 }
 
-void setSyncProvider( getExternalTime getTimeFunction){
+void ICACHE_FLASH_ATTR setSyncProvider( getExternalTime getTimeFunction){
   getTimePtr = getTimeFunction;
   nextSyncTime = sysTime;
   now(); // this will sync the clock
 }
 
-void setSyncInterval(time_t interval){ // set the number of seconds between re-sync
+void ICACHE_FLASH_ATTR setSyncInterval(time_t interval){ // set the number of seconds between re-sync
   syncInterval = (uint32_t)interval;
   nextSyncTime = sysTime + syncInterval;
 }

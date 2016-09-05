@@ -17,7 +17,7 @@
 		/$ota/check			N->C	N	p	json with current fw details	{"HARDWARE":{"type":"Default","rev":1},"BOOTLOADER":{"slot":0,"major":1,"minor":1,"build":392},"FACTORY":{"slot":1,"major":1,"minor":1,"build":214},"FIRMWARE":{"slot":2,"major":1,"minor":1,"build":138}}	
 		/$time				N->C	N	sh	empty, requesting time from controller (will answer with /hoco/$time broadcast
 		/$debug				N->C	N	p	debug messages avove threshold (see debug.h) submitted via mqtt - e.g. ERROR and FATAL
-		/$config			N->C	Y	p
+		/$config			N->C	Y	p	json with the hw to get config	{"hw":"Default","rev":1}
 			/$set			C->N	N	
 		/$event				
 			/{id}			N->C	Y

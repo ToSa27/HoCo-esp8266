@@ -1,7 +1,7 @@
 #include <CppJson.h>
 #include <debug.h>
 
-char *CppJson::jsonGetInternal(char *json, const char *name, bool trim) {
+char ICACHE_FLASH_ATTR *CppJson::jsonGetInternal(char *json, const char *name, bool trim) {
 	if (json[0] != '{')
 		return (char*)"";
 	char *cp = json + 1;
@@ -73,7 +73,7 @@ char *CppJson::jsonGetInternal(char *json, const char *name, bool trim) {
 	return (char*)"";
 }
 
-bool CppJson::jsonHas(char *json, const char *name) {
+bool ICACHE_FLASH_ATTR CppJson::jsonHas(char *json, const char *name) {
 	if (json[0] != '{')
 		return false;
 	char *cp = json + 1;
@@ -92,29 +92,36 @@ bool CppJson::jsonHas(char *json, const char *name) {
 	return false;
 }
 
-char *CppJson::jsonGet(char *json, const char *name) {
+char ICACHE_FLASH_ATTR *CppJson::jsonGet(char *json, const char *name) {
 	return jsonGetInternal(json, name, false);
 }
 
-char *CppJson::jsonGetString(char *json, const char *name) {
+char ICACHE_FLASH_ATTR CppJson::jsonGetChar(char *json, const char *name) {
+	char *v = jsonGetInternal(json, name, true);
+	char c = v[0];
+	delete(v);
+	return c;
+}
+
+char ICACHE_FLASH_ATTR *CppJson::jsonGetString(char *json, const char *name) {
 	return jsonGetInternal(json, name, true);
 }
 
-int CppJson::jsonGetInt(char *json, const char *name) {
+int ICACHE_FLASH_ATTR CppJson::jsonGetInt(char *json, const char *name) {
 	char *v = jsonGetInternal(json, name, false);
 	int i = atoi(v);
 	delete(v);
 	return i;
 }
 
-uint32_t CppJson::jsonGetTime(char *json, const char *name) {
+uint32_t ICACHE_FLASH_ATTR CppJson::jsonGetTime(char *json, const char *name) {
 	char *v = jsonGetInternal(json, name, false);
 	uint32_t t = atoi(v);
 	delete(v);
 	return t;
 }
 
-char *CppJson::jsonGetArrayInternal(char *json, char front, char*& item) {
+char ICACHE_FLASH_ATTR *CppJson::jsonGetArrayInternal(char *json, char front, char*& item) {
 	item = NULL;
 	char *cp = json;
 	if (cp[0] != front)
@@ -140,10 +147,10 @@ char *CppJson::jsonGetArrayInternal(char *json, char front, char*& item) {
 	return NULL;
 }
 
-char *CppJson::jsonGetArrayFirst(char *json, char*& item) {
+char ICACHE_FLASH_ATTR *CppJson::jsonGetArrayFirst(char *json, char*& item) {
 	return jsonGetArrayInternal(json, '[', item);
 }
 
-char *CppJson::jsonGetArrayNext(char *json, char*& item) {
+char ICACHE_FLASH_ATTR *CppJson::jsonGetArrayNext(char *json, char*& item) {
 	return jsonGetArrayInternal(json, ',', item);
 }

@@ -101,7 +101,7 @@ void ICACHE_FLASH_ATTR fota_deinit() {
 }
 
 static void ICACHE_FLASH_ATTR fota_recvcb(void *arg, char *pusrdata, unsigned short length) {
-	DEBUG("fota_recvcb");
+//	DEBUG("fota_recvcb");
 	char *ptrData, *ptrLen, *ptr;
 	os_timer_disarm(&fota_timer);
 	if (upgrade->content_len == 0) {

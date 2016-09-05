@@ -5,14 +5,28 @@
 #include <debug.h>
 #include <HoCoScheduler.h>
 #include <HoCoDevice.h>
+#ifdef HoCoDevice_DIn
 #include <HoCoDIn.h>
+#endif
+#ifdef HoCoDevice_DOut
 #include <HoCoDOut.h>
+#endif
+#ifdef HoCoDevice_OneWire
+#include <HoCoOneWire.h>
+#endif
+#ifdef HoCoDevice_DS1820
+#include <HoCoDS1820.h>
+#endif
+#ifdef HoCoDevice_Counter
+#include <HoCoCounter.h>
+#endif
+#ifdef HoCoDevice_Servo
+#include <HoCoServo.h>
+#endif
 
 bool HoCo::isInitialized = false;
 bool HoCo::isConnected = false;
 Vector<HoCoDeviceClass*> HoCo::Devices;
-//subscribe_callback HoCo::SubscribeCb = NULL;
-//publish_callback HoCo::PublishCb = NULL;
 
 HoCo::~HoCo() {
 	Devices.clear();
@@ -23,23 +37,17 @@ HoCo::~HoCo() {
 void ICACHE_FLASH_ATTR HoCo::Init(char *config) {
 	DEBUG("HoCo::Init");
 	DEBUG("config: %s", config);
-//	SubscribeCb = subscribe;
-//	PublishCb = publish;
 	if (ets_strlen(config) > 0)
 	{
 		char *d = CppJson::jsonGet(config, "d");
-		DEBUG("HoCo::Devices: %s", d);
 		char *di;
 		char *pos = CppJson::jsonGetArrayFirst(d, di);
-		DEBUG("HoCo::FirstDevice: %s", di);
 		while (di != NULL) {
-			DEBUG("HoCo::Device: %s", di);
 			InitDevice(di);
 			delete(di);
 			pos = CppJson::jsonGetArrayNext(pos, di);
 		}
 		delete(d);
-		DEBUG("DeviceCount: %d", Devices.count());
 	//	HangScheduler::Init();
 		isInitialized = true;
 	}
@@ -54,14 +62,31 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 	char *n = CppJson::jsonGetString(config, "n");
 	char *c = CppJson::jsonGet(config, "c");
 	DEBUG("HoCo::InitDevice - Type: %s / Name: %s", t, n);
-	if (ets_strstr(t, "DOut") == t)
-		Devices.add(new HoCoDOutClass(n, c));
-//		Devices.add(new HoCoDOutClass(n, c, SubscribeCb, PublishCb));
+	if (false) {}
+#ifdef HoCoDevice_DIn
 	else if (ets_strstr(t, "DIn") == t)
 		Devices.add(new HoCoDInClass(n, c));
-//		Devices.add(new HoCoDInClass(n, c, SubscribeCb, PublishCb));
-//	else if (ets_strstr(t, "DS1820") == t)
-//		Devices.add(new HangDS1820Class(n, c, Publish));
+#endif
+#ifdef HoCoDevice_DOut
+	else if (ets_strstr(t, "DOut") == t)
+		Devices.add(new HoCoDOutClass(n, c));
+#endif
+#ifdef HoCoDevice_OneWire
+	else if (ets_strstr(t, "OneWire") == t)
+		Devices.add(new HoCoOneWireClass(n, c));
+#endif
+#ifdef HoCoDevice_DS1820
+	else if (ets_strstr(t, "DS1820") == t)
+		Devices.add(new HoCoDS1820Class(n, c));
+#endif
+#ifdef HoCoDevice_Counter
+	else if (ets_strstr(t, "Counter") == t)
+		Devices.add(new HoCoCounterClass(n, c));
+#endif
+#ifdef HoCoDevice_Servo
+	else if (ets_strstr(t, "Servo") == t)
+		Devices.add(new HoCoServoClass(n, c));
+#endif
 //	else if (ets_strstr(t, "Oled") == t)
 //		Devices.add(new HangOledClass(n, c, Publish));
 //	else if (ets_strstr(t, "RgbOut") == t)
@@ -75,6 +100,8 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 //		if (ets_strstr(tfn, "Watering") == tfn)
 //			Devices.add(new HangFnWatering(n, c, Publish));
 //	}
+	else
+		WARN("Unknown Device Type: %s", t);
 	delete(c);
 	delete(n);
 	delete(t);

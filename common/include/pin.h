@@ -20,21 +20,21 @@ extern "C" {
 #define INPUT_PULLDOWN 			0x3
 #define OUTPUT_OPEN_DRAIN 		0x4
 
-void pinMode(uint8_t pin, uint8_t mode);
-void pullup(uint16_t pin);
-void pulldown(uint16_t pin);
-void noPullup(uint16_t pin);
+void ICACHE_FLASH_ATTR pinMode(uint8_t pin, uint8_t mode);
+void ICACHE_FLASH_ATTR pullup(uint16_t pin);
+void ICACHE_FLASH_ATTR pulldown(uint16_t pin);
+void ICACHE_FLASH_ATTR noPullup(uint16_t pin);
 
-void digitalWrite(uint8_t pin, uint8_t val);
-uint8_t digitalRead(uint8_t pin);
-void analogWrite(uint8_t pin, int duty);
-uint16_t analogRead();
+void ICACHE_FLASH_ATTR digitalWrite(uint8_t pin, uint8_t val);
+uint8_t ICACHE_FLASH_ATTR digitalRead(uint8_t pin);
+void ICACHE_FLASH_ATTR analogWrite(uint8_t pin, int duty);
+uint16_t ICACHE_FLASH_ATTR analogRead();
 
 typedef void (*InterruptCallback)(void *);
-void attachInterrupt(uint8_t pin, InterruptCallback callback, GPIO_INT_TYPE mode, void *data);
-void detachInterrupt(uint8_t pin);
-void noInterrupts();
-void interrupts();
+void ICACHE_FLASH_ATTR attachInterrupt(uint8_t pin, InterruptCallback callback, GPIO_INT_TYPE mode, void *data);
+void ICACHE_FLASH_ATTR detachInterrupt(uint8_t pin);
+void ICACHE_FLASH_ATTR noInterrupts();
+void ICACHE_FLASH_ATTR interrupts();
 
 #ifdef __cplusplus
 }

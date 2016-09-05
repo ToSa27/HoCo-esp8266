@@ -13,12 +13,12 @@ AR						= $(XTENSA_BINDIR)/xtensa-lx106-elf-ar
 LD						= $(XTENSA_BINDIR)/xtensa-lx106-elf-gcc
 OBJCOPY					= $(XTENSA_BINDIR)/xtensa-lx106-elf-objcopy
 
-TARGET					= factory
+TARGET					= firmware
 MODULES					= user
-LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl
-COMMONS					= boot sys_config hw_config wifi mqttc cjson tick pin
-COMMONMODULES			= TimeLib CppJson
-HOCODEVICES				= DIn DOut
+LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl m
+COMMONS					= boot sys_config hw_config wifi mqttc cjson tick pin helper i2c_master
+COMMONMODULES			= TimeLib CppJson OneWire
+HOCODEVICES				= DIn DOut OneWire DS1820 Counter
 
 # build and firmware locations
 BUILD_BASE				= build
@@ -78,6 +78,10 @@ DEFINES					+= SECTOR_CONFIG_SDK_CALI=$(SECTOR_CONFIG_SDK_CALI)
 DEFINES					+= SECTOR_CONFIG_SYS=$(SECTOR_CONFIG_SYS)
 DEFINES					+= SECTOR_CONFIG_HW=$(SECTOR_CONFIG_HW)
 DEFINES					+= RTCADDR_BOOT=$(RTCADDR_BOOT)
+DEFINES					+= ARDUINO=100
+DEFINES					+= ARDUINO_ARCH_ESP8266
+DEFINES					+= ONEWIRE_CRC=0
+DEFINES					+= $(addprefix HoCoDevice_,$(HOCODEVICES))
 
 INCDIRS					= ../common/include
 INCDIRS					+= $(addsuffix /include,$(MODULES))
@@ -121,12 +125,8 @@ vpath %.c $(addprefix ../common/modules/,$(COMMONMODULES))
 vpath %.cpp $(addprefix ../common/modules/,$(COMMONMODULES))
 define compile-common-modules
 $1/%.o: %.c
-	@echo CompCommMod C: $$< - $$@
-	@echo BDC: $(BUILD_DIRS_COMMON)
 	$(CC) $(INCDIRS) $(CFLAGS) $(DEFINES) -c $$< -o $$@
 $1/%.o: %.cpp
-	@echo CompCommMod CPP: $$< - $$@
-	@echo BDC: $(BUILD_DIRS_COMMON)
 	$(CPP) $(INCDIRS) $(CPPFLAGS) $(DEFINES) -c $$< -o $$@
 endef
 
@@ -175,13 +175,9 @@ $(MQTT_LIB): $(MQTT_LIB_SRC)
 	mv $(MQTT_LIB_SRC) $(MQTT_LIB)
 
 $(HOCO_LIB): $(HOCO_OBJ)
-	@echo HOCO_OBJ:
-	@echo $(HOCO_OBJ)
 	$(AR) cru $@ $(HOCO_OBJ)
 
 $(TARGET_LIB): $(OBJ)
-	@echo OBJ:
-	@echo $(OBJ)
 	$(AR) cru $@ $(OBJ)
 
 $(TARGET_ELF): $(MAIN_LIB) $(MQTT_LIB) $(HOCO_LIB) $(TARGET_LIB)

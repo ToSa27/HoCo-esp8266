@@ -20,7 +20,7 @@ public:
 	virtual ~HoCoDeviceClass();
 	virtual void Start() = 0;
 	virtual void Stop() = 0;
-	virtual void SendStatus() = 0;
+//	virtual void SendStatus() = 0;
 //	virtual char *DeviceType() = 0;
 	char *DeviceId;
 	void HandleDeviceMessage(char *Topic, char *Data);

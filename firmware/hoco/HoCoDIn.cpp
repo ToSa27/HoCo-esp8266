@@ -5,28 +5,11 @@
 #include <pin.h>
 #include <tick.h>
 
-//void ICACHE_IRAM_ATTR HoCoDInClass::InterruptCallback(void *data) {
-//	HoCoDInClass* c = (HoCoDInClass*)data;
-//	c->_InterruptCallback();
-//}
-
-//void ICACHE_IRAM_ATTR HoCoDInClass::_InterruptCallback() {
-//	if (millis() - _LastInterrupt > _Debounce) {
-//		uint8_t v = digitalRead(_Pin);
-////		if (v != _LastState) {
-//			_LastState = v;
-//			SendStatus();
-////		}
-//	}
-//	_LastInterrupt = millis();
-//}
-
 HoCoDInClass::HoCoDInClass(char *Name, char *Config) : HoCoDeviceClass(Name) {
 	SetConfig(Config);
 }
 
 HoCoDInClass::~HoCoDInClass() {
-//	detachInterrupt(_Pin);
 }
 
 uint8_t ICACHE_FLASH_ATTR HoCoDInClass::Get() {
@@ -36,67 +19,34 @@ uint8_t ICACHE_FLASH_ATTR HoCoDInClass::Get() {
 	return r;
 }
 
-//void ICACHE_FLASH_ATTR HoCoDInClass::SetStatus(char *Status) {
-//}
-
 void ICACHE_FLASH_ATTR HoCoDInClass::SendStatus() {
 	DEBUG("HoCoDInClass::SendStatus");
-//	char jt[25];
-//	ets_sprintf(jt, "{\"in\":%d,\"triggered\":%d}", digitalRead(_Pin), _LastState);
-//	OnPublish((char*)"status", jt);
 	char jt[3];
 	ets_sprintf(jt, "%d", _DebounceState);
 	Publish((char*)"triggered", (char*)jt, true);
 }
-
-//char ICACHE_FLASH_ATTR *HoCoDInClass::DeviceType() {
-//	return (char *)"DIn";
-//}
 
 void ICACHE_FLASH_ATTR HoCoDInClass::SetConfig(char *Config) {
 	DEBUG("HoCoDInClass::SetConfig %s", Config);
 	_Inverted = (CppJson::jsonGetInt(Config, "inv") > 0);
 	_Pin = CppJson::jsonGetInt(Config, "pin");
 	pinMode(_Pin, INPUT);
-	DEBUG("pin %d", _Pin);
 	_Debounce = CppJson::jsonGetInt(Config, "debounce");
-	_Trigger = CppJson::jsonGetInt(Config, "trigger");
-//	_LastState = digitalRead(_Pin);
+	_Trigger = CppJson::jsonGetChar(Config, "trigger");
 }
-
-//void ICACHE_FLASH_ATTR HoCoDInClass::SendConfig() {
-//	char jt[50];
-//	ets_sprintf(jt, "{\"pin\":%d,\"debounce\":%d,\"trigger\":%d}", _Pin, _Debounce, _Trigger);
-//	OnPublish((char*)"status", jt);
-//}
 
 void ICACHE_FLASH_ATTR HoCoDInClass::Start() {
 	DEBUG("HoCoDInClass::Start");
-//	GPIO_INT_TYPE git = GPIO_PIN_INTR_DISABLE;
-//	switch (_Trigger) {
-//	case 1:
-//		git = GPIO_PIN_INTR_POSEDGE;
-//		break;
-//	case 2:
-//		git = GPIO_PIN_INTR_NEGEDGE;
-//		break;
-//	case 3:
-//		git = GPIO_PIN_INTR_ANYEDGE;
-//		break;
-//	case 4:
-		_DebounceState = Get();
-		_DebounceLastMillis = mymillis();
-		ets_timer_disarm(&LoopTimer);
-		ets_timer_setfn(&LoopTimer, (ETSTimerFunc *)TimerLoop, (void*)this);
-		ets_timer_arm_new(&LoopTimer, 50, 1, 0);
-//		return;
-//	}
-//	attachInterrupt(_Pin, InterruptCallback, git, (void*)this);
+	_DebounceState = Get();
+	_DebounceLastMillis = mymillis();
+	ets_timer_disarm(&LoopTimer);
+	ets_timer_setfn(&LoopTimer, (ETSTimerFunc *)TimerLoop, (void*)this);
+	ets_timer_arm_new(&LoopTimer, 50, 1, 0);
 }
 
 void ICACHE_FLASH_ATTR HoCoDInClass::Stop() {
 	DEBUG("HoCoDInClass::Stop");
-//	detachInterrupt(_Pin);
+	ets_timer_disarm(&LoopTimer);
 }
 
 void ICACHE_FLASH_ATTR HoCoDInClass::HandlePropertyMessage(char *Topic, char *Data) {
@@ -109,17 +59,16 @@ void ICACHE_FLASH_ATTR HoCoDInClass::TimerLoop(void *data) {
 }
 
 void ICACHE_FLASH_ATTR HoCoDInClass::_TimerLoop() {
-//	DEBUG("%d", mymillis());
     if (mymillis() - _DebounceLastMillis >= _Debounce) {
     	uint8_t currentState = Get();
     	if (_DebounceState != currentState) {
     		_DebounceLastMillis = mymillis();
     		_DebounceState = currentState;
-    		if (_Trigger == 2)
+    		if (_Trigger == 'a')
     			SendStatus();
-    		else if (_Trigger == 0 && _DebounceState)
+    		else if (_Trigger == 'r' && _DebounceState)
    				SendStatus();
-    		else if (_Trigger == 1 && !_DebounceState)
+    		else if (_Trigger == 'f' && !_DebounceState)
    				SendStatus();
     	}
     }
