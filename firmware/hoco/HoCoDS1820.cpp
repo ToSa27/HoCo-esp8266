@@ -26,6 +26,7 @@ void ICACHE_FLASH_ATTR HoCoDS1820Class::SetConfig(char *Config) {
 	DEBUG("HoCoDS1820Class::SetConfig %s", Config);
 	char *OneWireName = CppJson::jsonGetString(Config, "OneWire");
 	_OneWireDevice = (HoCoOneWireClass*)HoCo::DeviceByName(OneWireName);
+	delete OneWireName;
 	_Pos = CppJson::jsonGetInt(Config, "pos");
 	DEBUG("position %d", _Pos);
 	_Interval = CppJson::jsonGetInt(Config, "interval");

@@ -59,6 +59,10 @@ flash_factory:
 	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
 		-ca $(ADDR_SLOT_1) -cf factory/$(FIRMWARE_BASE)/factory.bin
 
+flash_firmware:
+	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
+		-ca $(ADDR_SLOT_1) -cf firmware/$(FIRMWARE_BASE)/firmware.bin
+
 flash_reset: common/bin/blank3s.bin common/bin/blank4s.bin
 	$(ESPTOOL) -cp $(ESPPORT) -cb $(ESPBAUD) $(ESPOPTIONS) \
 		-ca $(ADDR_CONFIG_BOOT) -cf $(SDK_BASE)/bin/blank.bin \

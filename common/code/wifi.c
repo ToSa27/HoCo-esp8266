@@ -32,6 +32,9 @@ int wifi_station_count = 0;
 
 void ICACHE_FLASH_ATTR wifi_connect_success() {
 	INFO("wifi_connect_success");
+	struct ip_info ipi;
+	wifi_get_ip_info(STATION_IF, &ipi);
+	INFO("IP: "IPSTR, IP2STR(&ipi.ip));
 	wifi_set_st_state(WIFI_ST_CONNECTED);
 }
 

@@ -20,6 +20,30 @@
 #ifdef HoCoDevice_Counter
 #include <HoCoCounter.h>
 #endif
+#ifdef HoCoDevice_I2C
+#include <HoCoI2C.h>
+#endif
+#ifdef HoCoDevice_PCF8591
+#include <HoCoPCF8591.h>
+#endif
+#ifdef HoCoDevice_PCF8591AIn
+#include <HoCoPCF8591AIn.h>
+#endif
+#ifdef HoCoDevice_PCF8591AOut
+#include <HoCoPCF8591AOut.h>
+#endif
+#ifdef HoCoDevice_PCF8574
+#include <HoCoPCF8574.h>
+#endif
+#ifdef HoCoDevice_PCF8574DIn
+#include <HoCoPCF8574DIn.h>
+#endif
+#ifdef HoCoDevice_PCF8574DOut
+#include <HoCoPCF8574DOut.h>
+#endif
+#ifdef HoCoDevice_SSD1306
+#include <HoCoSSD1306.h>
+#endif
 #ifdef HoCoDevice_Servo
 #include <HoCoServo.h>
 #endif
@@ -82,6 +106,38 @@ void ICACHE_FLASH_ATTR HoCo::InitDevice(char *config) {
 #ifdef HoCoDevice_Counter
 	else if (ets_strstr(t, "Counter") == t)
 		Devices.add(new HoCoCounterClass(n, c));
+#endif
+#ifdef HoCoDevice_I2C
+	else if (ets_strstr(t, "I2C") == t)
+		Devices.add(new HoCoI2CClass(n, c));
+#endif
+#ifdef HoCoDevice_PCF8591
+	else if (ets_strstr(t, "PCF8591") == t)
+		Devices.add(new HoCoPCF8591Class(n, c));
+#endif
+#ifdef HoCoDevice_PCF8591AIn
+	else if (ets_strstr(t, "PCF8591AIn") == t)
+		Devices.add(new HoCoPCF8591AInClass(n, c));
+#endif
+#ifdef HoCoDevice_PCF8591AOut
+	else if (ets_strstr(t, "PCF8591AOut") == t)
+		Devices.add(new HoCoPCF8591AOutClass(n, c));
+#endif
+#ifdef HoCoDevice_PCF8574
+	else if (ets_strstr(t, "PCF8574") == t)
+		Devices.add(new HoCoPCF8574Class(n, c));
+#endif
+#ifdef HoCoDevice_PCF8574DIn
+	else if (ets_strstr(t, "PCF8574DIn") == t)
+		Devices.add(new HoCoPCF8574DInClass(n, c));
+#endif
+#ifdef HoCoDevice_PCF8574DOut
+	else if (ets_strstr(t, "PCF8574DOut") == t)
+		Devices.add(new HoCoPCF8574DOutClass(n, c));
+#endif
+#ifdef HoCoDevice_SSD1306
+	else if (ets_strstr(t, "SSD1306") == t)
+		Devices.add(new HoCoSSD1306Class(n, c));
 #endif
 #ifdef HoCoDevice_Servo
 	else if (ets_strstr(t, "Servo") == t)

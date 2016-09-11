@@ -38,7 +38,7 @@ void ICACHE_FLASH_ATTR mqtt_disconnected(uint32_t *args) {
 }
 
 void ICACHE_FLASH_ATTR mqtt_published(uint32_t *args) {
-	DEBUG("mqtt_published");
+//	DEBUG("mqtt_published");
 //	MQTT_Client* client = (MQTT_Client*)args;
 }
 

@@ -1,9 +1,8 @@
 #ifndef __I2C_MASTER_H__
 #define __I2C_MASTER_H__
 
-#include <ets_sys.h>
-#include <osapi.h>
-// originally 2 and 14 but I can't see why I can't use 4 and 5 - must set this up AFTER other GPIOsetup if used.
+#include <esp8266.h>
+
 #define I2C_MASTER_SDA_MUX PERIPHS_IO_MUX_GPIO4_U
 #define I2C_MASTER_SCL_MUX PERIPHS_IO_MUX_GPIO5_U
 #define I2C_MASTER_SDA_GPIO 4
@@ -11,6 +10,12 @@
 #define I2C_MASTER_SDA_FUNC FUNC_GPIO4
 #define I2C_MASTER_SCL_FUNC FUNC_GPIO5
 
+//#define I2C_MASTER_SDA_MUX PERIPHS_IO_MUX_GPIO2_U
+//#define I2C_MASTER_SCL_MUX PERIPHS_IO_MUX_MTMS_U
+//#define I2C_MASTER_SDA_GPIO 2
+//#define I2C_MASTER_SCL_GPIO 14
+//#define I2C_MASTER_SDA_FUNC FUNC_GPIO2
+//#define I2C_MASTER_SCL_FUNC FUNC_GPIO14
 
 //#define I2C_MASTER_SDA_MUX PERIPHS_IO_MUX_GPIO2_U
 //#define I2C_MASTER_SCL_MUX PERIPHS_IO_MUX_GPIO0_U
@@ -49,15 +54,13 @@ void i2c_master_init(void);
 #define i2c_master_wait    os_delay_us
 void i2c_master_stop(void);
 void i2c_master_start(void);
-void i2c_master_setAck(uint8_t level);
+void i2c_master_setAck(uint8 level);
 uint8 i2c_master_getAck(void);
 uint8 i2c_master_readByte(void);
-void i2c_master_writeByte(uint8_t wrdata);
+void i2c_master_writeByte(uint8 wrdata);
 
 bool i2c_master_checkAck(void);
 void i2c_master_send_ack(void);
 void i2c_master_send_nack(void);
-
-uint8_t I2CERROR;
 
 #endif

@@ -12,6 +12,7 @@ public:
 	static char jsonGetChar(char *json, const char *name);
 	static char *jsonGetString(char *json, const char *name);
 	static int jsonGetInt(char *json, const char *name);
+	static double jsonGetDouble(char *json, const char *name);
 	static uint32_t jsonGetTime(char *json, const char *name);
 	static char *jsonGetArrayFirst(char *json, char*& item);
 	static char *jsonGetArrayNext(char *json, char*& item);

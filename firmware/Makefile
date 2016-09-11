@@ -4,7 +4,11 @@
 include ../config.mk
 
 ESPTOOL2				:= $(addprefix ../,$(ESPTOOL2))
+ifdef CURL
 CURL					:= $(addprefix ../,$(CURL))
+else
+CURL					= curl
+endif
 
 # toolchain binaries
 CC						= $(XTENSA_BINDIR)/xtensa-lx106-elf-gcc
@@ -16,9 +20,10 @@ OBJCOPY					= $(XTENSA_BINDIR)/xtensa-lx106-elf-objcopy
 TARGET					= firmware
 MODULES					= user
 LIBS					= c gcc hal phy pp net80211 wpa lwip crypto ssl m
-COMMONS					= boot sys_config hw_config wifi mqttc cjson tick pin helper i2c_master
+COMMONS					= boot sys_config hw_config wifi mqttc cjson tick pin helper i2c
 COMMONMODULES			= TimeLib CppJson OneWire
-HOCODEVICES				= DIn DOut OneWire DS1820 Counter
+#HOCODEVICES				= DIn DOut OneWire DS1820 Counter I2C PCF8591 PCF8591AIn PCF8591AOut PCF8574 PCF8574DIn PCF8574DOut SSD1306
+HOCODEVICES				= DIn DOut I2C PCF8591 PCF8591AIn PCF8591AOut PCF8574 PCF8574DIn PCF8574DOut SSD1306
 
 # build and firmware locations
 BUILD_BASE				= build

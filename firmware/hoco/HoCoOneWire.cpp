@@ -14,7 +14,7 @@ HoCoOneWireClass::~HoCoOneWireClass() {
 }
 
 void ICACHE_FLASH_ATTR HoCoOneWireClass::SetConfig(char *Config) {
-	DEBUG("HangOneWireClass::SetConfig");
+	DEBUG("HoCoOneWireClass::SetConfig");
 	_Pin = CppJson::jsonGetInt(Config, "pin");
 	DEBUG("pin %d", _Pin);
 	_OneWire = new OneWire(_Pin);

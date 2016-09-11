@@ -31,6 +31,7 @@ void ICACHE_FLASH_ATTR HoCoDInClass::SetConfig(char *Config) {
 	_Inverted = (CppJson::jsonGetInt(Config, "inv") > 0);
 	_Pin = CppJson::jsonGetInt(Config, "pin");
 	pinMode(_Pin, INPUT);
+	_Sample = CppJson::jsonGetInt(Config, "sample");
 	_Debounce = CppJson::jsonGetInt(Config, "debounce");
 	_Trigger = CppJson::jsonGetChar(Config, "trigger");
 }
@@ -40,8 +41,10 @@ void ICACHE_FLASH_ATTR HoCoDInClass::Start() {
 	_DebounceState = Get();
 	_DebounceLastMillis = mymillis();
 	ets_timer_disarm(&LoopTimer);
-	ets_timer_setfn(&LoopTimer, (ETSTimerFunc *)TimerLoop, (void*)this);
-	ets_timer_arm_new(&LoopTimer, 50, 1, 0);
+	if (_Sample > 0) {
+		ets_timer_setfn(&LoopTimer, (ETSTimerFunc *)TimerLoop, (void*)this);
+		ets_timer_arm_new(&LoopTimer, _Sample, 1, 0);
+	}
 }
 
 void ICACHE_FLASH_ATTR HoCoDInClass::Stop() {

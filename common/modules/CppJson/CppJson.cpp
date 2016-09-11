@@ -1,5 +1,6 @@
 #include <CppJson.h>
 #include <debug.h>
+#include <helper.h>
 
 char ICACHE_FLASH_ATTR *CppJson::jsonGetInternal(char *json, const char *name, bool trim) {
 	if (json[0] != '{')
@@ -112,6 +113,13 @@ int ICACHE_FLASH_ATTR CppJson::jsonGetInt(char *json, const char *name) {
 	int i = atoi(v);
 	delete(v);
 	return i;
+}
+
+double ICACHE_FLASH_ATTR CppJson::jsonGetDouble(char *json, const char *name) {
+	char *v = jsonGetInternal(json, name, false);
+	double d = myatof(v);
+	delete(v);
+	return d;
 }
 
 uint32_t ICACHE_FLASH_ATTR CppJson::jsonGetTime(char *json, const char *name) {

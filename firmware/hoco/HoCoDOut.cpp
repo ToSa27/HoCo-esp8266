@@ -35,8 +35,6 @@ void ICACHE_FLASH_ATTR HoCoDOutClass::Set(uint8_t Value) {
 
 void ICACHE_FLASH_ATTR HoCoDOutClass::SendStatus() {
 	char jt[10];
-//	ets_sprintf(jt, "{\"out\":%d}", Get());
-//	OnPublish((char*)"status", jt);
 	ets_sprintf(jt, "%d", Get());
 	Publish((char*)"on", jt, true);
 }

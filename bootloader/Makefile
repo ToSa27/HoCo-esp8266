@@ -4,7 +4,11 @@
 include ../config.mk
 
 ESPTOOL2				:= $(addprefix ../,$(ESPTOOL2))
+ifdef CURL
 CURL					:= $(addprefix ../,$(CURL))
+else
+CURL					= curl
+endif
 
 # toolchain binaries
 CC						= $(XTENSA_BINDIR)/xtensa-lx106-elf-gcc
@@ -69,7 +73,7 @@ LIBDIRS					:= $(addprefix -L,$(LIBDIRS))
 LIBS					:= $(addprefix -l,$(LIBS))
 LIBS_STAGE				:= $(addprefix -l,$(LIBS_STAGE))
 
-CFLAGS					= -Os -O3 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals
+CFLAGS					= -Os -O3 -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals -std=gnu99
 LDFLAGS					= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 
 vpath %.c $(MODULES)

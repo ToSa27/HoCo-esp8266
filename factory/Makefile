@@ -4,7 +4,11 @@
 include ../config.mk
 
 ESPTOOL2				:= $(addprefix ../,$(ESPTOOL2))
+ifdef CURL
 CURL					:= $(addprefix ../,$(CURL))
+else
+CURL					= curl
+endif
 
 # toolchain binaries
 CC						= $(XTENSA_BINDIR)/xtensa-lx106-elf-gcc
